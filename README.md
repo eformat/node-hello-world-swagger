@@ -7,7 +7,9 @@
 ## Run
 
 ```npm install```
-`` npm start```
+
+```npm start```
+
 
 [Browse to here to test] (http://localhost:8080)
 
