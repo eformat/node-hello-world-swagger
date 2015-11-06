@@ -1,0 +1,34 @@
+{
+  "name": "node-hello-world-swagger",
+  "version": "1.0.0",
+  "description": "Hello World Swagger Mock API",
+  "keywords": [
+    "test",
+    "push bullet",
+    "api"
+  ],
+  "author": {
+    "name": "Mike Hepburn",
+    "url": "https://github.com/eformat/node-hello-world-swagger"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/eformat/node-hello-world-swagger",
+  "main": "README.md",
+  "scripts": {
+    "start": "node server.js",
+    "build": "jshint . --verbose && jscs . --verbose",
+    "upgrade": "ncu --upgradeAll && npm update",
+    "bump": "bump --prompt",
+    "release": "npm run upgrade && npm run build && npm run bump && npm publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eformat/node-hello-world-swagger"
+  },
+  "dependencies": {
+    "swagger-server": ">=1.0.0-alpha.16",
+    "swagger-parser": ">=3.3.0"
+  },
+  "devDependencies": {
+  }
+}

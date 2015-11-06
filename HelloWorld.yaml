@@ -1,0 +1,151 @@
+swagger: "2.0"
+info:
+  version: 1.0.0
+  title: Hello World
+  description: Hello World
+
+host: helloworld.io:8080
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+definitions:
+  person:
+    type: object
+    required:
+      - name
+      - message
+    properties:
+      name:
+        type: string
+        minLength: 4
+        pattern: "^[a-zA-Z0-9- ]+$"
+      message:
+        type: string
+        pattern: "^[a-zA-Z0-9- ]+$"
+
+parameters:
+  personName:
+    name: personName
+    in: path
+    description: Name of the person
+    required: true
+    type: string
+
+paths:
+  /people:
+    get:
+      description: Returns all people, optionally filtered by one or more criteria
+      operationId: findPeople
+      parameters: &peopleFilters
+        - name: name
+          in: query
+          description: Filters people by name
+          required: false
+          type: string
+        - name: message
+          in: query
+          description: Filters people by message
+          required: false
+          type: array
+          items:
+            type: string
+          uniqueItems: true
+          collectionFormat: csv
+      responses:
+        default:
+          description: Returns the matching people
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/person"
+          headers:
+            last-modified:
+              type: string
+              description: The date/time that a person was last modified
+
+    delete:
+      description: Deletes all people, optionally filtered by one or more criteria
+      operationId: deletePeople
+      parameters: *peopleFilters
+      responses:
+        default:
+          description: Returns the people that were deleted
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/person"
+
+    post:
+      description: Creates a new person
+      operationId: addPerson
+      parameters:
+        - name: person
+          in: body
+          description: The person to add
+          required: true
+          schema:
+            $ref: "#/definitions/person"
+      responses:
+        201:
+          description: Returns the newly-added person
+          schema:
+            $ref: "#/definitions/person"
+          headers:
+            Location:
+              type: string
+              description: The URL of the newly-added person
+
+  /people/{personName}:
+    parameters:
+      - $ref: "#/parameters/personName"
+
+    get:
+      description: Returns a person by name
+      operationId: findPersonByName
+      responses:
+        default:
+          description: Returns the person data
+          schema:
+            $ref: "#/definitions/person"
+          headers:
+            last-modified:
+              type: string
+              description: The date/time that the person was last modified
+
+    delete:
+      description: Deletes a single person based on the name supplied
+      operationId: deletePerson
+      responses:
+        default:
+          description: Returns the person that was deleted
+          schema:
+            $ref: "#/definitions/person"
+
+    patch:
+      description: Updates a person by name
+      parameters:
+        - name: person
+          in: body
+          description: The updated person info
+          required: true
+          schema:
+            $ref: "#/definitions/person"
+      responses:
+        default:
+          description: Returns the updated person data
+          schema:
+            $ref: "#/definitions/person"
+  /:
+    get:
+      produces:
+        - text/html
+      responses:
+        default:
+          description: Hello World homepage
+          schema:
+            type: file
+            default:
+              $ref: index.html
