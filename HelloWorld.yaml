@@ -23,8 +23,12 @@ definitions:
         minLength: 4
         pattern: "^[a-zA-Z0-9- ]+$"
       message:
-        type: string
-        pattern: "^[a-zA-Z0-9- ]+$"
+        type: array
+        uniqueItems: true
+        items:
+            type: string
+            minLength: 1
+            pattern: "^[a-zA-Z0-9- ]+$"
 
 parameters:
   personName:
