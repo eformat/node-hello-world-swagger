@@ -1,0 +1,220 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>OPENSHIFT_API_URL</name>
+          <description>URL of the OpenShift api endpoint.</description>
+          <defaultValue>https://ose3-master.hosts.example.com:8443</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.TextParameterDefinition>
+          <name>AUTH_TOKEN</name>
+          <description>Authentication token of an account/serviceaccount for accessing the project to run builds and tag images.  If you are running Jenkins in the same OpenShift deployment that it is communicating with and you have granted appropriate roles to the service account for the pod (normally &quot;default&quot;), you can leave this blank.</description>
+          <defaultValue>eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJoZWxsb3dvcmxkIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImplbmtpbnMtdG9rZW4tNXVybTEiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiamVua2lucyIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjUzY2ZkYjRiLTg0ZTMtMTFlNS1hMjA0LTUyNTQwMGIzNGQxZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpoZWxsb3dvcmxkOmplbmtpbnMifQ.P-8UV6oQhrHxkR0wDAHQWhMnOK4e_SEgsd6d5RlDX9gtzSwoH64uEXytTCiSchDbIoG_uHjA8Q3ypu0zFlHwpOawk-xQIFFZYIor4p9-hg-OhTXuC5aK3DxZIAPxlDrl1TvFKywIGyFmgc2dB5dtw1LGhZTU7HZwz9z_DBX1uYvltXc2IYyTBfELxpUTBAkmz3w2Usv4IxuCCE8d6PD37ZSLek5d9Rsdrzn2rpwUZPJzDgecaE9yJHoehhgybX9rx8TZjnG-ktL0mYXyXd2_tCBNx7bNJnYVcecZ62ARU-nLwUtjO-Gn6BQJMO8Gy8yQyqrCiPYZ8EKMbSKCY0fEHg</defaultValue>
+        </hudson.model.TextParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PROJECT</name>
+          <description>The OpenShift project this job will access</description>
+          <defaultValue>helloworld</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>BUILD_CONFIG</name>
+          <description>The name of the BuildConfig to trigger</description>
+          <defaultValue>helloworld</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TEST_IMAGE_TAG</name>
+          <description>The image:tag produced by the BuildConfig which will be tagged for promotion if the tests are successful.</description>
+          <defaultValue>helloworld:latest</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PRODUCTION_IMAGE_TAG</name>
+          <description>The tag to apply to the tested image to trigger a production deployment.</description>
+          <defaultValue>helloworld:prod</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ROUTE</name>
+          <description>The route to test after build completion</description>
+          <defaultValue>helloworld</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DEPLOYMENT_CONFIG</name>
+          <description>The name of the DeploymentConfig that deploys the output of the BuildConfig</description>
+          <defaultValue>helloworld</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>if [ -z &quot;$AUTH_TOKEN&quot; ]; then
+  AUTH_TOKEN=`cat /var/run/secrets/kubernetes.io/serviceaccount/token`
+fi
+
+if [ -e /run/secrets/kubernetes.io/serviceaccount/ca.crt ]; then
+  alias oc=&quot;oc -n $PROJECT --token=$AUTH_TOKEN --server=$OPENSHIFT_API_URL --certificate-authority=/run/secrets/kubernetes.io/serviceaccount/ca.crt &quot;
+else 
+  alias oc=&quot;oc -n $PROJECT --token=$AUTH_TOKEN --server=$OPENSHIFT_API_URL --insecure-skip-tls-verify &quot;
+fi
+
+# this works if on PaaS
+# TEST_ENDPOINT=`oc get service ${SERVICE} -t &apos;{{.spec.clusterIP}}{{&quot;:&quot;}}{{ $a:= index .spec.ports 0 }}{{$a.port}}&apos;`
+# else external, use route
+TEST_ENDPOINT=`oc get route ${ROUTE} -t &apos;{{.spec.host}}&apos;`
+
+
+# we have a rolling deployment - so no need to scale down
+# but wany old_rc so we can test if new one deployed
+rm old_rc_id || true
+echo &quot;none&quot; &gt; old_rc_id
+oc get rc -t &apos;{{ range .items }}{{.spec.selector.deploymentconfig}}{{&quot; &quot;}}{{.metadata.name}}{{&quot;\n&quot;}}{{end}}&apos; | grep -e &quot;^$DEPLOYMENT_CONFIG &quot; | awk &apos;{print $2}&apos; | while read -r test_rc_id; do
+#  echo &quot;Scaling down old deployment $test_rc_id&quot;
+#  oc scale --replicas=0 rc $test_rc_id
+  echo $test_rc_id &gt;&gt; old_rc_id
+done
+old_rc_id=`cat old_rc_id | awk -F - &apos;{print $NF&quot; &quot;$0}&apos; | sort -n | awk &apos;{print $2}&apos; | tail -n 1`
+
+# wait for old pods to be torn down
+# TODO should poll instead.
+sleep 2
+
+echo &quot;Triggering new application build and deployment&quot;
+BUILD_ID=`oc start-build ${BUILD_CONFIG} -n ${PROJECT}`
+
+# stream the logs for the build that just started
+rc=1
+count=0
+attempts=3
+set +e
+while [ $rc -ne 0 -a $count -lt $attempts ]; do
+  oc build-logs $BUILD_ID
+  rc=$?
+  count=$(($count+1))
+done
+set -e
+
+echo &quot;Checking build result status&quot;
+rc=1
+count=0
+attempts=100
+while [ $rc -ne 0 -a $count -lt $attempts ]; do
+  status=`oc get build ${BUILD_ID} -t &apos;{{.status.phase}}&apos;`
+  if [[ $status == &quot;Failed&quot; || $status == &quot;Error&quot; || $status == &quot;Canceled&quot; ]]; then
+    echo &quot;Fail: Build completed with unsuccessful status: ${status}&quot;
+    exit 1
+  fi
+
+  if [ $status == &quot;Complete&quot; ]; then
+    echo &quot;Build completed successfully, will test deployment next&quot;
+    rc=0
+  else 
+    count=$(($count+1))
+    echo &quot;Attempt $count/$attempts&quot;
+    sleep 2
+  fi
+done
+
+if [ $rc -ne 0 ]; then
+    echo &quot;Fail: Build did not complete in a reasonable period of time&quot;
+    exit 1
+fi
+
+
+# scale up the test deployment
+# if this gets scaled up before the new deployment occurs from the build,
+# bad things happen...need to make sure a new deployment has occurred first.
+count=0
+attempts=20
+new_rc_id=$old_rc_id
+while [ $new_rc_id == $old_rc_id -a $count -lt $attempts ]; do
+  rm new_rc_id || true
+  oc get rc -t &apos;{{ range .items }}{{.spec.selector.deploymentconfig}}{{&quot; &quot;}}{{.metadata.name}}{{&quot;\n&quot;}}{{end}}&apos; | grep -e &quot;^$DEPLOYMENT_CONFIG &quot; | awk &apos;{print $2}&apos; | while read -r test_rc_id; do
+    echo $test_rc_id &gt;&gt; new_rc_id
+  done
+  new_rc_id=`cat new_rc_id | awk -F - &apos;{print $NF&quot; &quot;$0}&apos; | sort -n | awk &apos;{print $2}&apos; | tail -n 1`
+  count=$(($count+1))
+  sleep 1
+done
+if [ $count -eq $attempts ]; then
+  echo &quot;Failure: Never found new deployment&quot;
+  exit 1
+fi
+
+test_rc_id=`cat new_rc_id | awk -F - &apos;{print $NF&quot; &quot;$0}&apos; | sort -n | awk &apos;{print $2}&apos; | tail -n 1`
+#echo &quot;Scaling up new deployment $test_rc_id&quot;
+#oc scale --replicas=1 rc $test_rc_id
+
+# check we have replicas for new deployment
+replicas=`oc get rc/$test_rc_id -t &apos;{{.spec.replicas}}{{&quot;\n&quot;}}&apos;`
+if [ $replicas -lt 1 ]; then
+  echo &quot;Failure: No pods found for new deployment&quot;
+  exit 1
+fi
+
+# check deploy pod status, if we have one - it failed
+# note this will trigger another build
+# if status is non zero, so not necessarily total failure but
+# this job certainly didn&apos;t do what was expected
+
+
+count=0
+attempts=10
+deploy_status=&quot;Running&quot;
+while [ ${deploy_status[0]} == &quot;Running&quot; -a $count -lt $attempts ]; do
+  deploy_status=($(echo `oc get pod ${BUILD_ID}-deploy -t &apos;{{.status.phase}}&apos; 2&gt;&amp;1 | awk &apos;{print $1 &quot;:&quot; $6$7}&apos;` | sed &apos;s/:/ /g&apos;))
+
+  if [[ ${deploy_status[0]} == &quot;Complete&quot; || ${deploy_status[1]} == &quot;notfound&quot; ]]; then
+    echo &quot;Build completed successfully, will test deployment next&quot;
+    count=11
+  elif [[ ${deploy_status[0]} == &quot;Failed&quot; || ${deploy_status[0]} == &quot;Error&quot; || ${deploy_status[0]} == &quot;Canceled&quot; ]]; then
+    echo &quot;Fail: Deploy completed with unsuccessful status: ${status}&quot;
+    exit 1
+  else 
+    count=$(($count+1))
+    echo &quot;Attempt $count/$attempts&quot;
+    sleep 2
+  fi
+done
+
+echo &quot;Checking for successful test deployment at $TEST_ENDPOINT&quot;
+set +e
+rc=1
+count=0
+attempts=100
+while [ $rc -ne 0 -a $count -lt $attempts ]; do
+  if curl -s --connect-timeout 2 $TEST_ENDPOINT &gt;&amp; /dev/null; then
+    rc=0
+    break
+  fi
+  count=$(($count+1))
+  echo &quot;Attempt $count/$attempts&quot;
+  sleep 2
+done
+set -e
+
+if [ $rc -ne 0 ]; then
+    echo &quot;Failed to access test deployment, aborting roll out.&quot;
+    exit 1
+fi
+
+
+# Tag the image into production
+echo &quot;Test deployment succeeded, rolling out to production...&quot;
+oc tag $TEST_IMAGE_TAG $PRODUCTION_IMAGE_TAG
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
