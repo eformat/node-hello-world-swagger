@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <project>
   <actions/>
-  <description></description>
+  <description>HelloWorld Build Development</description>
   <keepDependencies>false</keepDependencies>
   <properties>
     <hudson.model.ParametersDefinitionProperty>
@@ -14,27 +14,17 @@
         <hudson.model.TextParameterDefinition>
           <name>AUTH_TOKEN</name>
           <description>Authentication token of an account/serviceaccount for accessing the project to run builds and tag images.  If you are running Jenkins in the same OpenShift deployment that it is communicating with and you have granted appropriate roles to the service account for the pod (normally &quot;default&quot;), you can leave this blank.</description>
-          <defaultValue>eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJoZWxsb3dvcmxkIiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImplbmtpbnMtdG9rZW4tNXVybTEiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiamVua2lucyIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjUzY2ZkYjRiLTg0ZTMtMTFlNS1hMjA0LTUyNTQwMGIzNGQxZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpoZWxsb3dvcmxkOmplbmtpbnMifQ.P-8UV6oQhrHxkR0wDAHQWhMnOK4e_SEgsd6d5RlDX9gtzSwoH64uEXytTCiSchDbIoG_uHjA8Q3ypu0zFlHwpOawk-xQIFFZYIor4p9-hg-OhTXuC5aK3DxZIAPxlDrl1TvFKywIGyFmgc2dB5dtw1LGhZTU7HZwz9z_DBX1uYvltXc2IYyTBfELxpUTBAkmz3w2Usv4IxuCCE8d6PD37ZSLek5d9Rsdrzn2rpwUZPJzDgecaE9yJHoehhgybX9rx8TZjnG-ktL0mYXyXd2_tCBNx7bNJnYVcecZ62ARU-nLwUtjO-Gn6BQJMO8Gy8yQyqrCiPYZ8EKMbSKCY0fEHg</defaultValue>
+          <defaultValue>eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImplbmtpbnMtdG9rZW4tNWt5dnkiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiamVua2lucyIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjRiMTE4NmMwLTg1YjYtMTFlNS04ZTM2LTUyNTQwMGIzNGQxZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmplbmtpbnMifQ.UJQ0NB8L4Rsh5pJUNt-lZFrkkQv98rgY7u9ovb7FY8l64syqiFRxVj9nRK1ljnQZQDpe5xvZfylfFpUDYRcATvm5EOv1Ra0ayF25u9CRk_NH4e2Rmi_OLoqmZl2Cq5X4Ss0cypbJOlhCtFPjhdNKcrAk4nd7cHfHa1_slKt50ZEGBG9-qtFeBT8EgnGNf-PoGhcmF3B2p8qPLFTP1RB0yDjZVuyV308tOglEoPNjeX5z9L6RUpz4KSRhaM4xtsx2vUpG_2Blno3hqKZjQZENpn6rBZxC-uzTN5EPKcAr4-HzvlW_q5kZJUAX5n08mqg695ybxGwiIJ7pXjy1sAXXWA</defaultValue>
         </hudson.model.TextParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>PROJECT</name>
           <description>The OpenShift project this job will access</description>
-          <defaultValue>helloworld</defaultValue>
+          <defaultValue>helloworld-dev</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>BUILD_CONFIG</name>
           <description>The name of the BuildConfig to trigger</description>
           <defaultValue>helloworld</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>TEST_IMAGE_TAG</name>
-          <description>The image:tag produced by the BuildConfig which will be tagged for promotion if the tests are successful.</description>
-          <defaultValue>helloworld:latest</defaultValue>
-        </hudson.model.StringParameterDefinition>
-        <hudson.model.StringParameterDefinition>
-          <name>PRODUCTION_IMAGE_TAG</name>
-          <description>The tag to apply to the tested image to trigger a production deployment.</description>
-          <defaultValue>helloworld:prod</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>ROUTE</name>
@@ -208,13 +198,17 @@ if [ $rc -ne 0 ]; then
     exit 1
 fi
 
-
 # Tag the image into production
-echo &quot;Test deployment succeeded, rolling out to production...&quot;
-oc tag $TEST_IMAGE_TAG $PRODUCTION_IMAGE_TAG
+#echo &quot;Test deployment succeeded, rolling out to production...&quot;
+#oc tag $TEST_IMAGE_TAG $PRODUCTION_IMAGE_TAG
 </command>
     </hudson.tasks.Shell>
   </builders>
-  <publishers/>
+  <publishers>
+    <au.com.centrumsystems.hudson.plugin.buildpipeline.trigger.BuildPipelineTrigger plugin="build-pipeline-plugin@1.4.8">
+      <configs/>
+      <downstreamProjectNames>helloworld-test-deploy</downstreamProjectNames>
+    </au.com.centrumsystems.hudson.plugin.buildpipeline.trigger.BuildPipelineTrigger>
+  </publishers>
   <buildWrappers/>
 </project>

@@ -1,0 +1,135 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>HelloWorld Build Prod</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>OPENSHIFT_API_URL</name>
+          <description>URL of the OpenShift api endpoint.</description>
+          <defaultValue>https://ose3-master.hosts.example.com:8443</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.TextParameterDefinition>
+          <name>AUTH_TOKEN</name>
+          <description>Authentication token of an account/serviceaccount for accessing the project to run builds and tag images.  If you are running Jenkins in the same OpenShift deployment that it is communicating with and you have granted appropriate roles to the service account for the pod (normally &quot;default&quot;), you can leave this blank.</description>
+          <defaultValue>eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJkZWZhdWx0Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZWNyZXQubmFtZSI6ImplbmtpbnMtdG9rZW4tNWt5dnkiLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlcnZpY2UtYWNjb3VudC5uYW1lIjoiamVua2lucyIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6IjRiMTE4NmMwLTg1YjYtMTFlNS04ZTM2LTUyNTQwMGIzNGQxZCIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpkZWZhdWx0OmplbmtpbnMifQ.UJQ0NB8L4Rsh5pJUNt-lZFrkkQv98rgY7u9ovb7FY8l64syqiFRxVj9nRK1ljnQZQDpe5xvZfylfFpUDYRcATvm5EOv1Ra0ayF25u9CRk_NH4e2Rmi_OLoqmZl2Cq5X4Ss0cypbJOlhCtFPjhdNKcrAk4nd7cHfHa1_slKt50ZEGBG9-qtFeBT8EgnGNf-PoGhcmF3B2p8qPLFTP1RB0yDjZVuyV308tOglEoPNjeX5z9L6RUpz4KSRhaM4xtsx2vUpG_2Blno3hqKZjQZENpn6rBZxC-uzTN5EPKcAr4-HzvlW_q5kZJUAX5n08mqg695ybxGwiIJ7pXjy1sAXXWA</defaultValue>
+        </hudson.model.TextParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DEV_PROJECT</name>
+          <description>The OpenShift development project name</description>
+          <defaultValue>helloworld-dev</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TEST_PROJECT</name>
+          <description>The OpenShift test project name</description>
+          <defaultValue>helloworld-test</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PROD_PROJECT</name>
+          <description>The OpenShift production project name</description>
+          <defaultValue>helloworld-prod</defaultValue>
+        </hudson.model.StringParameterDefinition>	
+        <hudson.model.StringParameterDefinition>
+          <name>BUILD_CONFIG</name>
+          <description>The name of the BuildConfig to trigger</description>
+          <defaultValue>helloworld</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TEST_IMAGE_TAG</name>
+          <description>The image:tag produced by the BuildConfig which will be tagged for promotion if the tests are successful.</description>
+          <defaultValue>helloworld:promote</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PRODUCTION_IMAGE_TAG</name>
+          <description>The tag to apply to the tested image to trigger a production deployment.</description>
+          <defaultValue>helloworld:prod</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ROUTE</name>
+          <description>The route to test after build completion</description>
+          <defaultValue>helloworld</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>APP_HOSTNAME</name>
+          <description>The route to test after build completion</description>
+          <defaultValue>helloworld.apps.example.com</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>DEPLOYMENT_CONFIG</name>
+          <description>The name of the DeploymentConfig that deploys the output of the BuildConfig</description>
+          <defaultValue>helloworld</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>if [ -z &quot;$AUTH_TOKEN&quot; ]; then
+  AUTH_TOKEN=`cat /var/run/secrets/kubernetes.io/serviceaccount/token`
+fi
+
+if [ -e /run/secrets/kubernetes.io/serviceaccount/ca.crt ]; then
+  alias oc=&quot;oc --token=$AUTH_TOKEN --server=$OPENSHIFT_API_URL --certificate-authority=/run/secrets/kubernetes.io/serviceaccount/ca.crt &quot;
+else 
+  alias oc=&quot;oc --token=$AUTH_TOKEN --server=$OPENSHIFT_API_URL --insecure-skip-tls-verify &quot;
+fi
+
+oc project $DEV_PROJECT -n $DEV_PROJECT
+
+IS_NAME=`oc get is| tail -1|awk &apos;{print $1}&apos;`
+
+# get full name of the image
+FULL_IMAGE_NAME=`oc describe is ${IS_NAME} -n $DEV_PROJECT | grep -a1 &quot;Tag&quot; | tail -1 | awk &apos;{print $6}&apos;`
+
+# Tag to promote to QA
+oc tag $FULL_IMAGE_NAME $DEV_PROJECT/${IS_NAME}:prod -n $DEV_PROJECT
+
+# This should automatically initiate deployment
+oc project $PROD_PROJECT -n $PROD_PROJECT
+
+# Find the DeploymentConfig to see if this is a new deployment or just needs an update
+DC_ID=`oc get dc -n $PROD_PROJECT | tail -1| awk &apos;{print $1}&apos;`
+
+if [ $DC_ID == &quot;NAME&quot; ]; then
+  oc new-app $DEV_PROJECT/${IS_NAME}:prod --name=$APP_NAME -n $PROD_PROJECT
+  SVC_ID=`oc get svc -n $PROD_PROJECT | tail -1 | awk &apos;{print $1}&apos;`
+  oc expose service $SVC_ID --hostname=$APP_HOSTNAME -n $PROD_PROJECT
+fi
+
+# find the new rc based on the FULL_IMAGE_NAME=$FULL_IMAGE_NAME
+RC_ID=&quot;&quot;
+attempts=75
+count=0
+while [ -z &quot;$RC_ID&quot; -a $count -lt $attempts ]; do
+  RC_ID=`oc get rc -n $PROD_PROJECT | grep $FULL_IMAGE_NAME | awk &apos;{print $1}&apos;`
+  count=$(($count+1))
+  sleep 2
+done
+
+if [ -z &quot;$RC_ID&quot; ]; then
+  echo &quot;Fail: App deployment was not successful&quot;
+  exit 1 
+fi
+
+# Scale the app to 1 pod (just to make sure)
+scale_result=`oc scale rc $RC_ID --replicas=1 -n $PROD_PROJECT | awk &apos;{print $3}&apos;`
+
+if [ $scale_result != &quot;scaled&quot; ]; then
+  echo &quot;Fail: Scaling not successful&quot;
+  exit 1 
+fi
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
