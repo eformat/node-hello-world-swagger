@@ -108,7 +108,7 @@ Export jenkins configs for development
     curl -s http://admin:password@localhost:8080/job/helloworld-prod-deploy/config.xml > jenkins-ose-prod-deploy-build-job.xml
     curl -s http://admin:password@localhost:8080/view/HelloWorld%20Pipeline/config.xml > jenkins-helloworld-pipeline.xml
 
-## Generate JAX-RS stubs (or any other code stus - see codegen link)
+## Generate JAX-RS stubs (or any other code stubs - see codegen link)
 
     npm start
 
