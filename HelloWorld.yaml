@@ -4,8 +4,6 @@ info:
   title: Hello World
   description: Hello World
 
-host: helloworld.io:8080
-
 consumes:
   - application/json
 produces:
