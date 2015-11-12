@@ -80,7 +80,7 @@
                     <legend class="col-md-9 col-md-offset-2">Add Photos</legend>
 
                     <p class="col-md-7 col-md-offset-2">
-                        You can also delete or view individual photos <a href="people/Fred/photos/123456789">by their ID</a>.
+                        You can also delete or view individual photos <a id="person-photos-link-search" href="people/Fred/photos/123456789">by their ID</a>.
                         See <a href="api-docs/HelloWorld.yaml">the full Swagger API</a> for all the operations available.
                     </p>
 
@@ -159,12 +159,14 @@
                     $('.btn').removeAttr('disabled');
                     $('#person-photos-form').attr('action', 'people/' + person.name + '/photos');
                     $('#person-photos-link').attr('href', 'people/' + person.name + '/photos');
+                    $('#person-photos-link-search').attr('href', 'people/Photos' + person.name + '/photos/123456789');
                 }
                 else {
                     $('.person-label').text('Person');
                     $('.btn').attr('disabled', 'disabled');
                     $('#person-photos-form').attr('action', '');
                     $('#person-photos-link').attr('href', '');
+                    $('#person-photos-link-search').attr('href', '');
                 }
             }
 
