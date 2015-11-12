@@ -157,10 +157,14 @@
                 if (person) {
                     $('.person-label').text(person.name);
                     $('.btn').removeAttr('disabled');
+                    $('#person-photos-form').attr('action', 'people/' + person.name + '/photos');
+                    $('#person-photos-link').attr('href', 'people/' + person.name + '/photos');
                 }
                 else {
                     $('.person-label').text('Person');
                     $('.btn').attr('disabled', 'disabled');
+                    $('#person-photos-form').attr('action', '');
+                    $('#person-photos-link').attr('href', '');
                 }
             }
 
