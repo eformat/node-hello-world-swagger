@@ -14,6 +14,7 @@ var swaggerServer = require('swagger-server');
 var SwaggerParser = require('swagger-parser');
 
 var myAPI = 'HelloWorld.yaml';
+var port = 8080;
 
 var app = swaggerServer(myAPI);
 
@@ -23,8 +24,8 @@ SwaggerParser.validate(myAPI)
       console.log("API name: %s, Version: %s", api.info.title, api.info.version);
 
       // Start listening on port 8000
-      app.listen(8080, function() {
-          console.log('HelloWorld is now running at http://localhost:8080');
+      app.listen(port, function() {
+          console.log('HelloWorld is now running at http://localhost:' + port);
       });
     })
     .catch(function(err) {
