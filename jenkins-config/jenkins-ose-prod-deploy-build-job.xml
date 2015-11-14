@@ -54,7 +54,7 @@
         <hudson.model.StringParameterDefinition>
           <name>APP_HOSTNAME</name>
           <description>The route to test after build completion</description>
-          <defaultValue>helloworld.apps.example.com</defaultValue>
+          <defaultValue>helloworld.apps.foo.com</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.StringParameterDefinition>
           <name>DEPLOYMENT_CONFIG</name>
