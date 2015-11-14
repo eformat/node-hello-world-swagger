@@ -9,7 +9,7 @@
         <hudson.model.StringParameterDefinition>
           <name>OPENSHIFT_API_URL</name>
           <description>URL of the OpenShift api endpoint.</description>
-          <defaultValue>https://ose3-master.hosts.example.com:8443</defaultValue>
+          <defaultValue>https://ose3-master.hosts.foo.com:8443</defaultValue>
         </hudson.model.StringParameterDefinition>
         <hudson.model.TextParameterDefinition>
           <name>AUTH_TOKEN</name>
