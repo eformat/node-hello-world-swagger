@@ -145,6 +145,9 @@ test_rc_id=`cat new_rc_id | awk -F - &apos;{print $NF&quot; &quot;$0}&apos; | so
 #echo &quot;Scaling up new deployment $test_rc_id&quot;
 #oc scale --replicas=1 rc $test_rc_id
 
+# wait for rc to scale before checking
+sleep 2
+
 # check we have replicas for new deployment
 replicas=`oc get rc/$test_rc_id -t &apos;{{.spec.replicas}}{{&quot;\n&quot;}}&apos;`
 if [ $replicas -lt 1 ]; then
@@ -197,6 +200,7 @@ if [ $rc -ne 0 ]; then
     echo &quot;Failed to access test deployment, aborting roll out.&quot;
     exit 1
 fi
+
 
 # Tag the image into production
 #echo &quot;Test deployment succeeded, rolling out to production...&quot;
