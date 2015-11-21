@@ -27,7 +27,8 @@
   },
   "dependencies": {
     "swagger-server": ">=1.0.0-alpha.16",
-    "swagger-parser": ">=3.3.0"
+    "swagger-parser": ">=3.3.0",
+    "swagger-ui": ">=2.1.3"
   },
   "devDependencies": {
   }
