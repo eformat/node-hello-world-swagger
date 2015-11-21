@@ -96,7 +96,7 @@ test_rc_id=`cat new_rc_id | awk -F - '{print $NF" "$0}' | sort -n | awk '{print 
 #oc scale --replicas=1 rc $test_rc_id
 
 # wait for rc to scale before checking
-sleep 5
+sleep 2
 
 # check we have replicas for new deployment
 replicas=`oc get rc/$test_rc_id -t '{{.spec.replicas}}{{"\n"}}'`
