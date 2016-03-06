@@ -1,0 +1,15 @@
+---
+pipeline: "workflows/django/CanaryReleaseStageAndApprovePromote/Jenkinsfile"
+chatRoom: "node-hello-world-swagger"
+issueProjectName: "node-hello-world-swagger"
+buildName: "node-hello-world-swagger"
+codeReview: true
+links:
+  Job: "http://172.30.216.181:80/job/node-hello-world-swagger"
+  Production: "http://fabric8.apps.bar.com/kubernetes/pods?namespace=node-hello-world-swagger-prod"
+  Staging: "http://fabric8.apps.bar.com/kubernetes/pods?namespace=node-hello-world-swagger-staging"
+  Testing: "http://fabric8.apps.bar.com/kubernetes/pods?namespace=node-hello-world-swagger-testing"
+environments:
+  Testing: "node-hello-world-swagger-testing"
+  Staging: "node-hello-world-swagger-staging"
+  Production: "node-hello-world-swagger-prod"
