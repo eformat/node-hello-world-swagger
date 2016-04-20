@@ -90,7 +90,7 @@ Test + Prod projects -  should be setup and ready to promote to using jenkins pi
 
 Have not separated Jenkins logins - but can do this as well if desired
 
-## Jenkins Config
+## Jenkins Config (pre-jenkins-plugin branch)
 
 Deploy jobs and pipeline into remote jenkins from scratch
 
