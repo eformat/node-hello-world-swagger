@@ -5,27 +5,25 @@ node {
 
 	stage 'Build image'
     echo 'Building image'
+
     buildApplication(project, source, builder, 'openshift-dev')
 
     stage 'Deploy image'
     echo 'Deploying image'
 	deployApplication(project, 'openshift-dev')
 
-	stage 'Verify image deploy'
-	// add step
-
 	stage 'Create Route'
 	echo 'Creating a route to application'
-
-	// Verify service
-	// openShiftVerifyService
 }
 
 // Creates a Build and triggers it
 def buildApplication(String project, String source, String builder, String credentialsId){
     projectSet(project, credentialsId)
-    sh "oc new-build ${builder}~${source}"
-   	openShiftBuild(buildConfig: "${project}")
+    def ret = sh "oc new-build --binary --name=aloha -l app=aloha"
+    if (ret != 0) {
+        sh "echo 'Build exists'"
+        sh "oc start-build ${project} --follow --wait=true"
+    }
 }
 
 // Create a Deployment and trigger it
@@ -33,15 +31,9 @@ def deployApplication(String project, String credentialsId){
     projectSet(project, credentialsId)
     def ret = sh "oc new-app ${project}"
     if (ret != 0) {
-        sh "echo 'DeployConfig already exists'"
-        openShiftDeploy(deployConfig: "${project}")
+        sh "echo 'Application already exists'"
+        sh "oc deploy ${project} --latest"
     }
-}
-
-// Verify deploy
-def verifyDeployment(String project, String credentialsId){
-    projectSet(project, credentialsId)
-    openShiftVerifyDeployment(depCfg: "${project}", replicaCount: 1, verifyReplicaCount: true)
 }
 
 // Expose service to create a route
