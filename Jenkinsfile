@@ -28,7 +28,7 @@ node {
 def buildApplication(String project, String source, String builder, String credentialsId){
     projectSet(project, credentialsId)
     sh "oc new-build ${builder}~${source}"
-   	openShiftBuild(namepsace: "${project}", buildConfig: "${project}")
+   	openShiftBuild(buildConfig: "${project}")
 }
 
 // Create a Deployment and trigger it
@@ -37,14 +37,14 @@ def deployApplication(String project, String credentialsId){
     def ret = sh "oc new-app ${project}"
     if (ret != 0) {
         sh "echo 'DeployConfig already exists'"
-        openShiftDeploy(namepsace: "${project}", deployConfig: "${project}")
+        openShiftDeploy(deployConfig: "${project}")
     }
 }
 
 // Verify deploy
 def verifyDeployment(String project, String credentialsId){
     projectSet(project, credentialsId)
-    openShiftVerifyDeployment(namepsace: "${project}", depCfg: "${project}", replicaCount: 1, verifyReplicaCount: true)
+    openShiftVerifyDeployment(depCfg: "${project}", replicaCount: 1, verifyReplicaCount: true)
 }
 
 // Expose service to create a route
