@@ -27,11 +27,12 @@ node {
 // Creates a Build and triggers it
 def buildApplication(String project, String source, String builder, String credentialsId){
     projectSet(project, credentialsId)
-    def ret = sh "oc new-build ${builder}~${source}"
+    def ret = sh "oc new-build ${builder}~${source} --follow --wait=true"
     if (ret != 0) {
         sh  "echo 'Build already exists'"
     	openShiftBuild(buildConfig: ${project})
     }
+
 }
 
 // Create a Deployment and trigger it
