@@ -19,7 +19,7 @@ node {
 // Creates a Build and triggers it
 def buildApplication(String project, String source, String builder, String credentialsId){
     projectSet(project, credentialsId)
-    def ret = sh "oc new-build --binary --name=aloha -l app=aloha"
+    def ret = sh "oc new-build ${project}"
     if (ret != 0) {
         sh "echo 'Build exists'"
         sh "oc start-build ${project} --follow --wait=true"
