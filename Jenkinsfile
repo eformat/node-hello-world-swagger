@@ -4,7 +4,7 @@ node {
 	def project = 'node-hello-world-swagger'
 
     // add jenkins permission to this project
-    sh "oc policy add-role-to-user edit system:serviceaccount:ci2:default -n $(oc project -q)"
+    sh 'oc policy add-role-to-user edit system:serviceaccount:ci2:default -n $(oc project -q)''
 
     //stage 'Checkout'
 	//git branch: 'master', url: "${source}"
