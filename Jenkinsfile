@@ -3,6 +3,9 @@ node {
 	def builder = 'registry.access.redhat.com/openshift3/nodejs-010-rhel7:latest'
 	def project = 'node-hello-world-swagger'
 
+    // add jenkins permission to this project
+    sh "oc policy add-role-to-user edit system:serviceaccount:ci2:default -n $(oc project -q)"
+
     //stage 'Checkout'
 	//git branch: 'master', url: "${source}"
 
