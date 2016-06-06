@@ -2,7 +2,7 @@ node {
 	stage 'Checkout'
 	def source = 'https://github.com/eformat/node-hello-world-swagger.git'
 	def builder = 'registry.access.redhat.com/openshift3/nodejs-010-rhel7:latest'
-	def project = ''node-hello-world-swagger'
+	def project = 'node-hello-world-swagger'
 
 	git branch: 'master', url: ${source}
 
