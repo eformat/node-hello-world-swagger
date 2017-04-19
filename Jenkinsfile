@@ -6,6 +6,7 @@ node {
 
     echo "Build Number is: ${env.BUILD_NUMBER}"
     echo "Branch name is: ${env.BRANCH_NAME}"
+    echo "${env}"
 
     stage ('Build') {
         echo 'Building image'
