@@ -16,7 +16,7 @@ node {
             echo "Git Commit is: ${commit_id}"
         }
         def origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
-        def source = "${origin_url}#${commit_id}"    
+        source = "${origin_url}#${commit_id}"    
         echo "Source URL is: ${source}"
     }
 
