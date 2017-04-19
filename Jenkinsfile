@@ -1,14 +1,21 @@
 node {
     def source = 'https://github.com/eformat/node-hello-world-swagger.git'
 
-    stage ('Build image') {
+    stage('Create Application') {
         echo 'Building image'
-        buildApplication(source)
+        createApplication(source)        
     }
 
-    stage ('Deploy image') {
+    stage ('Build') {
+        echo 'Building image'
+        def build = getBuildName()
+        openshiftBuild(buildConfig: build, showBuildLogs: 'true')
+    }
+
+    stage ('Deploy') {
         echo 'Deploying image'
-        deployApplication(source)
+        def deploy = getDeployName()
+        openshiftDeploy(deploymentConfig: deploy)
     }
 
     stage ('Create Route') {
@@ -17,26 +24,22 @@ node {
     }
 }
 
-// Creates a Build and triggers it
-def buildApplication(String source) {
+// Create application if it doesnt exist
+def createApplication(String source) {
     try {
-        def ret = sh "oc new-app ${source}"
-    } catch (error) {
-      echo "new-app exists"
-        def build = getBuildName()
-        sh "oc start-build ${build} --follow --wait=true"
+        sh "oc new-app ${source}"
+    } finally {
+        echo "new-app exists"
     }
 }
 
-// Create a Deployment and trigger it
-def deployApplication(String source) {
-    def deploy = getDeployConfigName()
-    sh "oc rollout latest ${deploy}"
-}
-
 // Expose service to create a route
-def createRoute(String project){
-    sh "oc expose svc ${project} || echo 'Route already exists'"
+def createRoute(String project) {
+    try {
+        sh "oc expose svc ${project} || echo 'Route already exists'"
+    } finally {
+        echo "route exists"
+    }    
 }
 
 // Get Build Name
@@ -49,7 +52,7 @@ def getBuildName() {
 }
 
 // Get Deploy Config Name
-def getDeployConfigName() {
+def getDeployName() {
     def cmd2 = $/deploymentconfig=$(oc get dc -l app=node-hello-world-swagger -o name);echo $${deploymentconfig##deploymentconfig/} > deployName/$
     sh cmd2
     dply = readFile('deployName').trim()
