@@ -30,7 +30,7 @@ node {
 // Create application if it doesnt exist
 def createApplication(String source) {
     try {
-        sh "oc new-app ${source}"
+        sh "oc new-app ${source} --name=node-hello-world-swagger-${env.BRANCH_NAME}"
    } catch(Exception e) {
         echo "new-app exists"
     }
