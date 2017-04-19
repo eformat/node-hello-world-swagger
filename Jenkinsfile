@@ -5,7 +5,8 @@ node {
     def name = "node-hello-world-swagger-${branch}"
 
     echo "Build Number is: ${env.BUILD_NUMBER}"
-    echo "Branch name is: ${env.BRANCH_NAME}"
+    echo "Branch Name is: ${env.BRANCH_NAME}"
+    echo "Change ID is: ${env.CHANGE_ID}"
 
     stage ('Build') {
         echo 'Building image'
