@@ -7,29 +7,29 @@ node {
 
     stage('Create Application') {
         echo 'Building image'
-        createApplication(source)        
+        createApplication(source, name)        
     }
 
     stage ('Build') {
         echo 'Building image'
-        def build = getBuildName()
+        def build = getBuildName(name)
         openshiftBuild(buildConfig: build, showBuildLogs: 'true')
     }
 
     stage ('Deploy') {
         echo 'Deploying image'
-        def deploy = getDeployName()
+        def deploy = getDeployName(name)
         openshiftDeploy(deploymentConfig: deploy)
     }
 
     stage ('Create Route') {
         echo 'Creating a route to application'
-        createRoute()
+        createRoute(name)
     }
 }
 
 // Create application if it doesnt exist
-def createApplication(String source) {
+def createApplication(String source, String name) {
     try {
         sh "oc new-app ${source} --name=${name}"
    } catch(Exception e) {
@@ -38,9 +38,9 @@ def createApplication(String source) {
 }
 
 // Expose service to create a route
-def createRoute() {
+def createRoute(String name) {
     try {
-        def service = getServiceName()
+        def service = getServiceName(name)
         sh "oc expose svc ${service}"
     } catch(Exception e) {
         echo "route exists"
@@ -48,7 +48,7 @@ def createRoute() {
 }
 
 // Get Build Name
-def getBuildName() {
+def getBuildName(String name) {
     def cmd1 = $/buildconfig=$(oc get bc -l app=${name} -o name);echo $${buildconfig##buildconfig/} > buildName/$
     sh cmd1
     bld = readFile('buildName').trim()
@@ -57,7 +57,7 @@ def getBuildName() {
 }
 
 // Get Deploy Config Name
-def getDeployName() {
+def getDeployName(String name) {
     def cmd2 = $/deploymentconfig=$(oc get dc -l app=${name} -o name);echo $${deploymentconfig##deploymentconfig/} > deployName/$
     sh cmd2
     dply = readFile('deployName').trim()
@@ -66,7 +66,7 @@ def getDeployName() {
 }
 
 // Get Service Name
-def getServiceName() {
+def getServiceName(String name) {
     def cmd3 = $/service=$(oc get svc -l app=${name} -o name);echo $${service##service/} > serviceName/$
     sh cmd3
     svc = readFile('serviceName').trim()
