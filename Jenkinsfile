@@ -19,20 +19,21 @@ node {
         def origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
         source = "${origin_url}#${commit_id}"    
         echo "Source URL is: ${source}"
-        // Create initial app if doesn't exist'
-        try {
-            sh "oc new-app ${source} --name=${name} --labels=app=${name} || echo 'app exists'"
-            new_app_run = 'true'
-        } catch(Exception e) {
-            echo "new-app exists"
-        }
     }
 
     stage ('Build') {
-        if (!new_app_run) { // don't build twice
+        // Create initial app if doesn't exist
+        if(getBuildName(name)) {
             echo 'Building image'
             def build = getBuildName(name)
             openshiftBuild(buildConfig: build, showBuildLogs: 'true')
+        } else {
+            echo 'Creating app'
+            try {
+                sh "oc new-app ${source} --name=${name} --labels=app=${name} || echo 'app exists'"
+            } catch(Exception e) {
+                echo "new-app exists"
+            }
         }
     }
 
