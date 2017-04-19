@@ -1,5 +1,4 @@
 node {
-    def source = "https://github.com/eformat/node-hello-world-swagger.git#${env.BRANCH_NAME}"
     def branch = "${env.BRANCH_NAME}"
     branch = branch.toLowerCase()
     def name = "node-hello-world-swagger-${branch}"
@@ -7,23 +6,15 @@ node {
     echo "Build Number is: ${env.BUILD_NUMBER}"
     echo "Branch name is: ${env.BRANCH_NAME}"
     echo "Job Name is: ${env.JOB_NAME}"
-    echo "Git Commit is: ${env.GIT_COMMIT}"
-    echo "Git URL is: ${env.GIT_URL}"
-
-//    echo "Workspace: ${WORKSPACE}"    
-//   dir ("${WORKSPACE}") {
-//        def commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
-//        echo "Git Commit is: ${commit_id}"
-//    }
-
-    stage('Checkout') {
-        // Checkout code from repository
-        checkout scm
-        dir ("${WORKSPACE}") {
-            def commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
-            echo "Git Commit is: ${commit_id}"
-        }
+    def commit_id
+    // Checkout code from repository
+    checkout scm
+    dir ("${WORKSPACE}") {
+        commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
+        echo "Git Commit is: ${commit_id}"
     }
+    def source = "https://github.com/eformat/node-hello-world-swagger.git#${commit_id}"    
+    echo "Source URL is: ${source}"
 
     stage ('Build') {
         echo 'Building image'
