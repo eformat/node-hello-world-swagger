@@ -15,8 +15,8 @@ node {
             commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
             echo "Git Commit is: ${commit_id}"
         }
-        def git_origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
-        def source = "https://github.com/eformat/node-hello-world-swagger.git#${commit_id}"    
+        def origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
+        def source = "${origin_url}#${commit_id}"    
         echo "Source URL is: ${source}"
     }
 
