@@ -31,7 +31,7 @@ def buildApplication(String source) {
 // Create a Deployment and trigger it
 def deployApplication(String source) {
     def deploy = getDeployConfigName()
-    sh "oc deploy ${deploy} --latest"
+    sh "oc rollout ${deploy} --latest"
 }
 
 // Expose service to create a route
