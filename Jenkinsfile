@@ -33,7 +33,7 @@ node {
 // Create application if it doesnt exist
 def createApplication(String source, String name) {
     try {
-        sh "oc new-app ${source} --name=${name}"
+        sh "oc new-app ${source} --name=${name} --labels=app=${name}"
    } catch(Exception e) {
         echo "new-app exists"
     }
