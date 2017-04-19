@@ -1,5 +1,8 @@
 node {
     def source = 'https://github.com/eformat/node-hello-world-swagger.git'
+    
+    echo "Build Number is: ${env.BUILD_NUMBER}"
+    echo "Branch name is: ${env.BRANCH_NAME}"
 
     stage('Create Application') {
         echo 'Building image'
