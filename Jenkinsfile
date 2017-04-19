@@ -6,7 +6,7 @@ node {
 
     echo "Build Number is: ${env.BUILD_NUMBER}"
     echo "Branch name is: ${env.BRANCH_NAME}"
-    echo "${env}"
+    echo "Current Build Display Name: ${currentBuild.displayName}"
 
     stage ('Build') {
         echo 'Building image'
@@ -29,7 +29,7 @@ node {
 // Create application if it doesnt exist
 def createOrBuildApplication(String source, String name, String build) {
     try {
-        sh "oc new-app ${source} --name=${name} --labels=app=${name}"
+        openshift.newApp("${source}","--name=${name}","--labels=app=${name}")
    } catch(Exception e) {
         echo "new-app exists"
         openshiftBuild(buildConfig: build, showBuildLogs: 'true')
@@ -49,26 +49,20 @@ def createRoute(String name) {
 // Get Build Name
 def getBuildName(String name) {
     def cmd1 = $/buildconfig=$(oc get bc -l app=${name} -o name);echo $${buildconfig##buildconfig/} > buildName/$
-    sh cmd1
-    bld = readFile('buildName').trim()
-    sh 'rm buildName'
+    bld = sh(returnStdout: true, script: cmd1).trim()    
     return bld
 }
 
 // Get Deploy Config Name
 def getDeployName(String name) {
     def cmd2 = $/deploymentconfig=$(oc get dc -l app=${name} -o name);echo $${deploymentconfig##deploymentconfig/} > deployName/$
-    sh cmd2
-    dply = readFile('deployName').trim()
-    sh 'rm deployName'
+    dply = sh(returnStdout: true, script: cmd2).trim()    
     return dply
 }
 
 // Get Service Name
 def getServiceName(String name) {
     def cmd3 = $/service=$(oc get svc -l app=${name} -o name);echo $${service##service/} > serviceName/$
-    sh cmd3
-    svc = readFile('serviceName').trim()
-    sh 'rm serviceName'
+    svc = sh(returnStdout: true, script: cmd3).trim()        
     return svc
 }
