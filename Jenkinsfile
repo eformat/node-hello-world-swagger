@@ -83,6 +83,6 @@ def getServiceName(String name) {
 
 // Set Build Ref
 def setBuildRef(String build, String source, String commit_id) {
-    def cmd4 = $/oc patch bc/"${build}" -p '{\"spec\":{\"source\":{\"git\":{\"uri\":\"${source}\",\"ref\": \"${commit_id}\"}}}}'/$
+    def cmd4 = $/oc patch bc/"${build}" -p $'{\"spec\":{\"source\":{\"git\":{\"uri\":\"${source}\",\"ref\": \"${commit_id}\"}}}}$'/$
     sh cmd4
 }
