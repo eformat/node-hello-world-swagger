@@ -37,7 +37,7 @@ def createApplication(String source) {
 def createRoute() {
     try {
         def service = getServiceName()
-        sh "oc expose svc ${project} || echo 'Route already exists'"
+        sh "oc expose svc ${service}"
     } catch(Exception e) {
         echo "route exists"
     }    
