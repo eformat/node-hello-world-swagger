@@ -1,6 +1,8 @@
 node {
     def source = 'https://github.com/eformat/node-hello-world-swagger.git'
-    def name = "node-hello-world-swagger-${env.BRANCH_NAME}"
+    def branch = "${env.BRANCH_NAME}"
+    branch = branch.toLowerCase()
+    def name = "node-hello-world-swagger-${branch}"
 
     echo "Build Number is: ${env.BUILD_NUMBER}"
     echo "Branch name is: ${env.BRANCH_NAME}"
