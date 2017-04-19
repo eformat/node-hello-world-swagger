@@ -34,7 +34,7 @@ def createApplication(String source) {
 }
 
 // Expose service to create a route
-def createRoute(String project) {
+def createRoute() {
     try {
         sh "oc expose svc ${project} || echo 'Route already exists'"
     } finally {
@@ -58,4 +58,13 @@ def getDeployName() {
     dply = readFile('deployName').trim()
     sh 'rm deployName'
     return dply
+}
+
+// Get Service Name
+def getDeployName() {
+    def cmd3 = $/service=$(oc get svc -l app=node-hello-world-swagger -o name);echo $${service##service/} > serviceName/$
+    sh cmd3
+    svc = readFile('serviceName').trim()
+    sh 'rm serviceName'
+    return svc
 }
