@@ -28,7 +28,7 @@ node {
 def createApplication(String source) {
     try {
         sh "oc new-app ${source}"
-    } finally {
+   } catch(Exception e) {
         echo "new-app exists"
     }
 }
@@ -38,7 +38,7 @@ def createRoute() {
     try {
         def service = getServiceName()
         sh "oc expose svc ${project} || echo 'Route already exists'"
-    } finally {
+    } catch(Exception e) {
         echo "route exists"
     }    
 }
