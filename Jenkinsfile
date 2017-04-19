@@ -6,11 +6,15 @@ node {
 
     echo "Build Number is: ${env.BUILD_NUMBER}"
     echo "Branch name is: ${env.BRANCH_NAME}"
-    echo "Workspace: ${WORKSPACE}"    
-    dir ("${WORKSPACE}") {
-        def commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
-        echo "Git Commit is: ${commit_id}"
-    }
+    echo "Job Name is: ${env.JOB_NAME}"
+    echo "Git Commit is: ${env.GIT_COMMIT}"
+    echo "Git URL is: ${env.GIT_URL}"
+
+//    echo "Workspace: ${WORKSPACE}"    
+//   dir ("${WORKSPACE}") {
+//        def commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
+//        echo "Git Commit is: ${commit_id}"
+//    }
 
     stage ('Build') {
         echo 'Building image'
