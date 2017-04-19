@@ -1,15 +1,14 @@
 node {
-    def project = getProjectName()
     def source = 'https://github.com/eformat/node-hello-world-swagger.git'
 
     stage ('Build image') {
         echo 'Building image'
-        buildApplication(project, source, build)
+        buildApplication(source)
     }
 
     stage ('Deploy image') {
         echo 'Deploying image'
-        deployApplication(project)
+        deployApplication(source)
     }
 
     stage ('Create Route') {
@@ -19,7 +18,7 @@ node {
 }
 
 // Creates a Build and triggers it
-def buildApplication(String project, String source) {
+def buildApplication(String source) {
     def ret = sh "oc new-app ${source}"
     if (ret != 0) {
         sh "echo 'Build exists'"
@@ -29,11 +28,12 @@ def buildApplication(String project, String source) {
 }
 
 // Create a Deployment and trigger it
-def deployApplication(String project) {
-    def ret = sh "oc new-app ${project}"
+def deployApplication(String source) {
+    def ret = sh "oc new-app ${source}"
     if (ret != 0) {
         sh "echo 'Application already exists'"
-        sh "oc deploy ${project} --latest"
+        def deploy = getDeployName()
+        sh "oc deploy ${deploy} --latest"
     }
 }
 
@@ -42,28 +42,19 @@ def createRoute(String project){
     sh "oc expose svc ${project} || echo 'Route already exists'"
 }
 
-// Get Project Name
-def getProjectName() {
-    def cmd1 = $/project=$(oc get project -o name);echo $${project##project/} > projectName/$
-    sh cmd1
-    name = readFile('projectName').trim()
-    sh 'rm projectName'
-    return name
-}
-
 // Get Build Name
 def getBuildName() {
-    def cmd2 = $/buildconfig=$(oc get bc -l app=node-hello-world-swagger -o name);echo $${buildconfig##buildconfig/} > buildName/$
-    sh cmd2
+    def cmd1 = $/buildconfig=$(oc get bc -l app=node-hello-world-swagger -o name);echo $${buildconfig##buildconfig/} > buildName/$
+    sh cmd1
     bld = readFile('buildName').trim()
     sh 'rm buildName'
     return bld
 }
 
 // Get Deploy Config Name
-def getBuildName() {
-    def cmd3 = $/deploymentconfig=$(oc get dc -l app=node-hello-world-swagger -o name);echo $${deploymentconfig##deploymentconfig/} > deployName/$
-    sh cmd3
+def getDeployConfigName() {
+    def cmd2 = $/deploymentconfig=$(oc get dc -l app=node-hello-world-swagger -o name);echo $${deploymentconfig##deploymentconfig/} > deployName/$
+    sh cmd2
     dply = readFile('deployName').trim()
     sh 'rm deployName'
     return dply
