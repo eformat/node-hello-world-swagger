@@ -20,8 +20,9 @@ node {
         // Checkout code from repository
         checkout scm
         dir ("${WORKSPACE}") {
-        def commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
-        echo "Git Commit is: ${commit_id}"
+            def commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
+            echo "Git Commit is: ${commit_id}"
+        }
     }
 
     stage ('Build') {
