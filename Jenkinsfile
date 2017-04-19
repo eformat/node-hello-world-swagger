@@ -19,9 +19,10 @@ node {
 
 // Creates a Build and triggers it
 def buildApplication(String source) {
-    def ret = sh "oc new-app ${source}"
-    if (ret != 0) {
-        sh "echo 'Build exists'"
+    try {
+        def ret = sh "oc new-app ${source}"
+    } catch (error) {
+      echo "new-app exists"
         def build = getBuildName()
         sh "oc start-build ${build} --follow --wait=true"
     }
@@ -29,12 +30,8 @@ def buildApplication(String source) {
 
 // Create a Deployment and trigger it
 def deployApplication(String source) {
-    def ret = sh "oc new-app ${source}"
-    if (ret != 0) {
-        sh "echo 'Application already exists'"
-        def deploy = getDeployName()
-        sh "oc deploy ${deploy} --latest"
-    }
+    def deploy = getDeployName()
+    sh "oc deploy ${deploy} --latest"
 }
 
 // Expose service to create a route
