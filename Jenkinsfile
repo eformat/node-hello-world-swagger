@@ -7,15 +7,10 @@ node {
     echo "Build Number is: ${env.BUILD_NUMBER}"
     echo "Branch name is: ${env.BRANCH_NAME}"
 
-    stage('Create Application') {
-        echo 'Building image'
-        createApplication(source, name)        
-    }
-
     stage ('Build') {
         echo 'Building image'
-        def build = getBuildName(name)
-        openshiftBuild(buildConfig: build, showBuildLogs: 'true')
+        def build = getBuildName(name)        
+        createOrBuildApplication(source, name, build)
     }
 
     stage ('Deploy') {
@@ -31,11 +26,12 @@ node {
 }
 
 // Create application if it doesnt exist
-def createApplication(String source, String name) {
+def createOrBuildApplication(String source, String name, String build) {
     try {
         sh "oc new-app ${source} --name=${name} --labels=app=${name}"
    } catch(Exception e) {
         echo "new-app exists"
+        openshiftBuild(buildConfig: build, showBuildLogs: 'true')
     }
 }
 
