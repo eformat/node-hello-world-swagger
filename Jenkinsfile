@@ -8,6 +8,7 @@ node {
     echo "Job Name is: ${env.JOB_NAME}"
     def commit_id
     def source
+    def new_app_run
     stage ('Initialise') {
         // Checkout code from repository
         checkout scm
@@ -18,17 +19,21 @@ node {
         def origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
         source = "${origin_url}#${commit_id}"    
         echo "Source URL is: ${source}"
+        // Create initial app if doesn't exist'
         try {
             sh "oc new-app ${source} --name=${name} --labels=app=${name} || echo 'app exists'"
+            new_app_run = 'true'
         } catch(Exception e) {
             echo "new-app exists"
         }
     }
 
     stage ('Build') {
-        echo 'Building image'
-        def build = getBuildName(name)
-        openshiftBuild(buildConfig: build, showBuildLogs: 'true')      
+        if (!new_app_run) { // don't build twice
+            echo 'Building image'
+            def build = getBuildName(name)
+            openshiftBuild(buildConfig: build, showBuildLogs: 'true')
+        }
     }
 
     stage ('Deploy') {
