@@ -1,5 +1,5 @@
 node {
-    def source = 'https://github.com/eformat/node-hello-world-swagger.git'
+    def source = "https://github.com/eformat/node-hello-world-swagger.git#${env.BRANCH_NAME}"
     def branch = "${env.BRANCH_NAME}"
     branch = branch.toLowerCase()
     def name = "node-hello-world-swagger-${branch}"
