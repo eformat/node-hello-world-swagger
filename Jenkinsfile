@@ -18,12 +18,17 @@ node {
         def origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
         source = "${origin_url}#${commit_id}"    
         echo "Source URL is: ${source}"
+        try {
+            sh "oc new-app ${source} --name=${name} --labels=app=${name} || echo 'app exists'"
+        } catch(Exception e) {
+            echo "new-app exists"
+        }
     }
 
     stage ('Build') {
         echo 'Building image'
-        def build = getBuildName(name)        
-        createOrBuildApplication(source, name, build)
+        def build = getBuildName(name)
+        openshiftBuild(buildConfig: build, showBuildLogs: 'true')      
     }
 
     stage ('Deploy') {
@@ -35,16 +40,6 @@ node {
     stage ('Create Route') {
         echo 'Creating a route to application'
         createRoute(name)
-    }
-}
-
-// Create application if it doesnt exist
-def createOrBuildApplication(String source, String name, String build) {
-    try {
-        openshift.newApp("${source}","--name=${name}","--labels=app=${name}")
-   } catch(Exception e) {
-        echo "new-app exists"
-        openshiftBuild(buildConfig: build, showBuildLogs: 'true')
     }
 }
 
