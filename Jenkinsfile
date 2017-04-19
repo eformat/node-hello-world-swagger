@@ -30,7 +30,7 @@ def buildApplication(String source) {
 
 // Create a Deployment and trigger it
 def deployApplication(String source) {
-    def deploy = getDeployName()
+    def deploy = getDeployConfigName()
     sh "oc deploy ${deploy} --latest"
 }
 
