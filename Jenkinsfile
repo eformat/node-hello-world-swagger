@@ -8,7 +8,7 @@ node {
     echo "Job Name is: ${env.JOB_NAME}"
     def commit_id
     def source
-    def new_app_run
+    def origin_url    
     stage ('Initialise') {
         // Checkout code from repository
         checkout scm
@@ -16,16 +16,17 @@ node {
             commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
             echo "Git Commit is: ${commit_id}"
         }
-        def origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
+        origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
         source = "${origin_url}#${commit_id}"    
         echo "Source URL is: ${source}"
     }
 
     stage ('Build') {
-        // Create initial app if doesn't exist
+        // Start Build or Create initial app if doesn't exist
         if(getBuildName(name)) {
             echo 'Building image'
             def build = getBuildName(name)
+            setBuildRef(build, origin_url, commit_id)            
             openshiftBuild(buildConfig: build, showBuildLogs: 'true')
         } else {
             echo 'Creating app'
@@ -78,4 +79,10 @@ def getServiceName(String name) {
     def cmd3 = $/service=$(oc get svc -l app=${name} -o name);echo $${service##service/}/$
     svc = sh(returnStdout: true, script: cmd3).trim()        
     return svc
+}
+
+// Set Build Ref
+def setBuildRef(String build, String source, String commit_id) {
+    def cmd4 = $/oc patch bc/"${build}" -p '{\"spec\":{\"source\":{\"git\":{\"uri\":\"${source}\",\"ref\": \"${commit_id}\"}}}}'/$
+    sh cmd4
 }
