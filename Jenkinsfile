@@ -6,7 +6,9 @@ node {
 
     echo "Build Number is: ${env.BUILD_NUMBER}"
     echo "Branch name is: ${env.BRANCH_NAME}"
-    echo "Current Build Display Name: ${currentBuild.displayName}"
+    def commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
+    echo "Git Commit is: ${commit_id}"
+    echo "${scm}"
 
     stage ('Build') {
         echo 'Building image'
