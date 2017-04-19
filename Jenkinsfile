@@ -1,34 +1,35 @@
 node {
-	def source = 'https://github.com/eformat/node-hello-world-swagger.git'
-	def builder = 'registry.access.redhat.com/openshift3/nodejs-010-rhel7:latest'
-	def project = 'node-hello-world-swagger'
+    def project = getProjectName()
+    def source = 'https://github.com/eformat/node-hello-world-swagger.git'
 
-	stage 'Build image'
-    echo 'Building image'
+    stage ('Build image') {
+        echo 'Building image'
+        buildApplication(project, source, build)
+    }
 
-    buildApplication(project, source, builder, 'openshift-dev')
+    stage ('Deploy image') {
+        echo 'Deploying image'
+        deployApplication(project)
+    }
 
-    stage 'Deploy image'
-    echo 'Deploying image'
-	deployApplication(project, 'openshift-dev')
-
-	stage 'Create Route'
-	echo 'Creating a route to application'
+    stage ('Create Route') {
+        echo 'Creating a route to application'
+        createRoute()
+    }
 }
 
 // Creates a Build and triggers it
-def buildApplication(String project, String source, String builder, String credentialsId){
-    projectSet(project, credentialsId)
-    def ret = sh "oc new-build ${project}"
+def buildApplication(String project, String source) {
+    def ret = sh "oc new-app ${source}"
     if (ret != 0) {
         sh "echo 'Build exists'"
-        sh "oc start-build ${project} --follow --wait=true"
+        def build = getBuildName()
+        sh "oc start-build ${build} --follow --wait=true"
     }
 }
 
 // Create a Deployment and trigger it
-def deployApplication(String project, String credentialsId){
-    projectSet(project, credentialsId)
+def deployApplication(String project) {
     def ret = sh "oc new-app ${project}"
     if (ret != 0) {
         sh "echo 'Application already exists'"
@@ -37,17 +38,33 @@ def deployApplication(String project, String credentialsId){
 }
 
 // Expose service to create a route
-def createRoute(String project, String credentialsId){
-    projectSet(project, credentialsId)
+def createRoute(String project){
     sh "oc expose svc ${project} || echo 'Route already exists'"
 }
 
-// Login and set the project
-def projectSet(String project, String credentialsId){
-    //Use a credential called openshift-dev
-    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: "${credentialsId}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-        sh "oc login --insecure-skip-tls-verify=true -u $env.USERNAME -p $env.PASSWORD https://${OPENSHIFT_MASTER}"
-    }
-    sh "oc new-project ${project} || echo 'Project exists'"
-    sh "oc project ${project}"
+// Get Project Name
+def getProjectName() {
+    def cmd1 = $/project=$(oc get project -o name);echo $${project##project/} > projectName/$
+    sh cmd1
+    name = readFile('projectName').trim()
+    sh 'rm projectName'
+    return name
+}
+
+// Get Build Name
+def getBuildName() {
+    def cmd2 = $/buildconfig=$(oc get bc -l app=node-hello-world-swagger -o name);echo $${buildconfig##buildconfig/} > buildName/$
+    sh cmd2
+    bld = readFile('buildName').trim()
+    sh 'rm buildName'
+    return bld
+}
+
+// Get Deploy Config Name
+def getBuildName() {
+    def cmd3 = $/deploymentconfig=$(oc get dc -l app=node-hello-world-swagger -o name);echo $${deploymentconfig##deploymentconfig/} > deployName/$
+    sh cmd3
+    dply = readFile('deployName').trim()
+    sh 'rm deployName'
+    return dply
 }

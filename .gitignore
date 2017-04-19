@@ -2,3 +2,4 @@ node_modules/
 .idea/
 ~
 old_rc_id
+swagger-ui-dist
