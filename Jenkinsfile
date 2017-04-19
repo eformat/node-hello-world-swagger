@@ -8,7 +8,7 @@ node {
     echo "Branch name is: ${env.BRANCH_NAME}"
     //def commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
     //echo "Git Commit is: ${commit_id}"
-    echo "${scm}"
+    echo "Workspace: ${WORKSPACE}"
 
     stage ('Build') {
         echo 'Building image'
