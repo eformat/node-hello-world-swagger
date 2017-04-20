@@ -4,10 +4,7 @@ node {
     echo "Build Number is: ${env.BUILD_NUMBER}"
     echo "Branch name is: ${env.BRANCH_NAME}"
     echo "Job Name is: ${env.JOB_NAME}"
-    def commit_id
-    def source
-    def origin_url
-    def name
+    def commit_id, source, origin_url, name
     stage ('Initialise') {
         // Checkout code from repository - we want commit id and name
         checkout scm
@@ -17,6 +14,7 @@ node {
             def cmd0 = $/name=$(git config --local remote.origin.url); name=$${name##*/}; echo $${name%%.git}/$
             name = sh(returnStdout: true, script: cmd0).trim()
             name = "${name}-${branch}"
+            echo "Name is: ${name}"
         }
         origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
         source = "${origin_url}#${commit_id}"    
