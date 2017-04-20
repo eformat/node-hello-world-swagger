@@ -14,7 +14,8 @@ node {
         dir ("${WORKSPACE}") {
             commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
             echo "Git Commit is: ${commit_id}"
-            name = sh(returnStdout:true, script: 'git config --local remote.origin.url|sed -n \"s#.*/\([^.]*\)\.git#\1#p\"'
+            def cmd0 = $/name=$(git config --local remote.origin.url); name=$${name##*/}; echo $${name%%.git}/$
+            name = sh(returnStdout: true, script: cmd0).trim()
             name = "${name}-${branch}"
         }
         origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
@@ -32,8 +33,6 @@ node {
         } else {
             echo 'Creating app'
             try {
-                def cmd0 = $/name=$(git config --local remote.origin.url); name=$${name##*/}; echo $${name%%.git}/$
-                name = sh(returnStdout: true, script: cmd0).trim()
                 sh "oc new-app ${source} --name=${name} --labels=app=${name} || echo 'app exists'"
             } catch(Exception e) {
                 echo "new-app exists"
