@@ -32,6 +32,8 @@ node {
         } else {
             echo 'Creating app'
             try {
+                def cmd0 = $/name=$(git config --local remote.origin.url); name=$${name##*/}; echo $${name%%.git}/$
+                name = sh(returnStdout: true, script: cmd0).trim()
                 sh "oc new-app ${source} --name=${name} --labels=app=${name} || echo 'app exists'"
             } catch(Exception e) {
                 echo "new-app exists"
