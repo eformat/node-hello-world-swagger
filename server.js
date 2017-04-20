@@ -22,7 +22,8 @@ var app = swaggerServer(myAPI);
 SwaggerParser.validate(myAPI)
     .then(function(api) {
       console.log("API name: %s, Version: %s", api.info.title, api.info.version);
-
+      console.log("Build Version: %s", process.env.OPENSHIFT_BUILD_REFERENCE);
+      
       // Start listening on port 8000
       app.listen(port, function() {
           console.log('HelloWorld is now running at http://localhost:' + port);
