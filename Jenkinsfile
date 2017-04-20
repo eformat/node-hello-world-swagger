@@ -9,7 +9,7 @@ node {
     def origin_url
     def name
     stage ('Initialise') {
-        // Checkout code from repository
+        // Checkout code from repository - we want commit id and name
         checkout scm
         dir ("${WORKSPACE}") {
             commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
