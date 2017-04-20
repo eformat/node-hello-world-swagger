@@ -15,7 +15,6 @@
                     <li class="active"><a href="#"><i class="glyphicon glyphicon-home"></i> Home</a></li>
                     <li><a href="api-docs/HelloWorld.yaml">Swagger API (YAML)</a></li>
                     <li><a href="api-docs/">Swagger API (JSON)</a></li>
-                    <li><span class="build-label"> - Build Version</span></li>
                 </ul>
             </div>
         </nav>
@@ -186,8 +185,6 @@
                 $('#results').contents().find('body').html(data);
             }
             
-            var build_version = "<%= build_version %>";
-            $('.build-label').text(build_version);
         </script>
     </body>
 </html>
