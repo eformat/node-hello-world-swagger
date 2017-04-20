@@ -8,6 +8,7 @@
 
 // Set the DEBUG environment variable to enable debug output
 process.env.DEBUG = 'swagger:*';
+var build_version =  process.env.OPENSHIFT_BUILD_REFERENCE;
 
 // Create a Swagger Server app from the PetStore.yaml file
 var swaggerServer = require('swagger-server');
@@ -22,8 +23,8 @@ var app = swaggerServer(myAPI);
 SwaggerParser.validate(myAPI)
     .then(function(api) {
       console.log("API name: %s, Version: %s", api.info.title, api.info.version);
-      console.log("Build Version: %s", process.env.OPENSHIFT_BUILD_REFERENCE);
-      
+      console.log("Build Version: %s", build_version);
+
       // Start listening on port 8000
       app.listen(port, function() {
           console.log('HelloWorld is now running at http://localhost:' + port);
