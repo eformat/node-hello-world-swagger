@@ -1,20 +1,21 @@
 node {
     def branch = "${env.BRANCH_NAME}"
     branch = branch.toLowerCase()
-    def name = "node-hello-world-swagger-${branch}"
-
     echo "Build Number is: ${env.BUILD_NUMBER}"
     echo "Branch name is: ${env.BRANCH_NAME}"
     echo "Job Name is: ${env.JOB_NAME}"
     def commit_id
     def source
-    def origin_url    
+    def origin_url
+    def name
     stage ('Initialise') {
         // Checkout code from repository
         checkout scm
         dir ("${WORKSPACE}") {
             commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim() 
             echo "Git Commit is: ${commit_id}"
+            name = sh(returnStdout:true, script: 'git config --local remote.origin.url|sed -n \"s#.*/\([^.]*\)\.git#\1#p\"'
+            name = "${name}-${branch}"
         }
         origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
         source = "${origin_url}#${commit_id}"    
