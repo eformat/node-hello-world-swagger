@@ -31,7 +31,7 @@ node {
         } else {
             echo 'Creating app'
             try {
-                sh "oc new-app ${source} --name=${name} --labels=app=${name} || echo 'app exists'"
+                sh "oc new-app ${source} --name=${name} --labels=app=${name} --strategy=source || echo 'app exists'"
             } catch(Exception e) {
                 echo "new-app exists"
             }
