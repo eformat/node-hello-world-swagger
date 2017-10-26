@@ -3,3 +3,5 @@ node_modules/
 ~
 old_rc_id
 swagger-ui-dist
+*.iml
+samples/
