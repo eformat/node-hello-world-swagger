@@ -1,7 +1,7 @@
-node_modules/
-.idea/
-~
+node_modules
+.idea
 old_rc_id
 swagger-ui-dist
 *.iml
-samples/
+samples
+package-lock.json
