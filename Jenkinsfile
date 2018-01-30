@@ -62,21 +62,21 @@ def createRoute(String name) {
 
 // Get Build Name
 def getBuildName(String name) {
-    def cmd1 = $/buildconfig=$(oc get bc -l app=${name} -o name);echo $${buildconfigs##buildconfigs/}/$
+    def cmd1 = $/buildconfigs=$(oc get bc -l app=${name} -o name);echo $${buildconfigs##buildconfigs/}/$
     bld = sh(returnStdout: true, script: cmd1).trim()    
     return bld
 }
 
 // Get Deploy Config Name
 def getDeployName(String name) {
-    def cmd2 = $/deploymentconfig=$(oc get dc -l app=${name} -o name);echo $${deploymentconfigs##deploymentconfigs/}/$
+    def cmd2 = $/deploymentconfigs=$(oc get dc -l app=${name} -o name);echo $${deploymentconfigs##deploymentconfigs/}/$
     dply = sh(returnStdout: true, script: cmd2).trim()    
     return dply
 }
 
 // Get Service Name
 def getServiceName(String name) {
-    def cmd3 = $/service=$(oc get svc -l app=${name} -o name);echo $${services##services/}/$
+    def cmd3 = $/services=$(oc get svc -l app=${name} -o name);echo $${services##services/}/$
     svc = sh(returnStdout: true, script: cmd3).trim()        
     return svc
 }
