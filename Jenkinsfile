@@ -110,10 +110,10 @@ openshift.withCluster() {
                             // export as a template or map of exportable objects
                             // change image to reference :test image
                             // add in configmaps / secrets support
-                            def project = openshift.selector("project", "node-hello-test")
-                            if (project.count() != 1) {
-                                openshift.newProject('node-hello-test')
-                            }
+                            //def project = openshift.selector("project", "node-hello-test")
+                            //if (project.count() != 1) {
+                            openshift.newProject('node-hello-test')
+                            //}
                             openshift.withProject('node-hello-test') {
                                 def maps = openshift.selector( ['dc', 'svc', 'route'], [ app: "${name}-master" ] )
                                 def objs = maps.objects( exportable:true )
