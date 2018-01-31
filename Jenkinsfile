@@ -61,13 +61,24 @@ openshift.withCluster() {
                                 buildSelector.logs('-f')
                             } else {
                                 // create new build
-                                def bc_args = [source, "--name ${name}-master", "--strategy=source"]
+                                def bc_args = [origin_url, "--name ${name}-master", "--strategy=source"]
                                 def bc = openshift.newApp(bc_args).narrow('bc')
                                 build = bc.related('builds')
                                 build.logs('-f')
                                 build.untilEach(1) { // We want a minimum of 1 build
                                     return it.object().status.phase == "Complete"
                                 }
+                            }
+                        }
+                    }
+                }
+
+                stage('Deploy') {
+                    steps {
+                        timeout(5) {
+                            def rm = openshift.selector("dc", "${name}-master").rollout()
+                            openshift.selector("dc", "${name}-master").related('pods').untilEach(1) {
+                                return (it.object().status.phase == "Running")
                             }
                         }
                     }
