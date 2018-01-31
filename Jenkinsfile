@@ -24,7 +24,7 @@ openshift.withCluster() {
                 }
             }
             stages {
-                stage('Initialise') {
+                stage('initialise') {
                     steps {
                         sh 'printenv'
                         dir("${WORKSPACE}") {
@@ -40,7 +40,7 @@ openshift.withCluster() {
                     }
                 }
 
-                stage('CI Build') {
+                stage('ci build') {
                     when {
                         branch 'PR-*'
                     }
@@ -48,7 +48,7 @@ openshift.withCluster() {
                     }
                 }
 
-                stage('Build') {
+                stage('build') {
                     when {
                         branch 'master'
                     }
@@ -73,7 +73,7 @@ openshift.withCluster() {
                     }
                 }
 
-                stage('Deploy') {
+                stage('deploy') {
                     steps {
                         timeout(5) {
                             def rm = openshift.selector("dc", "${name}-master").rollout()
