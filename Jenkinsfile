@@ -54,7 +54,7 @@ openshift.withCluster() {
                     }
                     steps {
                         timeout(10) {
-                            def build = openshift.selector("bc", $ { name } - master).related('builds')
+                            def build = openshift.selector("bc", "${name}-master").related('builds')
                             if (build) {
                                 // existing bc
                                 def buildSelector = build.startBuild()
