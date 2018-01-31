@@ -3,28 +3,28 @@
 echo "Build Number is: ${env.BUILD_NUMBER}"
 echo "Job Name is: ${env.JOB_NAME}"
 
-pipeline {
-    openshift.withCluster() {
+openshift.withCluster() {
+    pipeline {
+        environment {
+            //CREDS = credentials('somecreds')
+            def commit_id, source, origin_url, name
+        }
+        options {
+            // set a timeout of 20 minutes for this pipeline
+            timeout(time: 20, unit: 'MINUTES')
+        }
+        agent {
+            node {
+                // spin up a node.js slave pod to run this build on
+                // when running Jenkinsfile from SCM this implicitly does a checkout scm
+                label 'nodejs'
+            }
+        }
+        parameters {
+            string(name: 'Greeting', defaultValue: 'Hello', description: 'Hi Mike!')
+        }
         openshift.withProject() {
             echo "Using project: ${openshift.project()}"
-            environment {
-                //CREDS = credentials('somecreds')
-                def commit_id, source, origin_url, name
-            }
-            options {
-                // set a timeout of 20 minutes for this pipeline
-                timeout(time: 20, unit: 'MINUTES')
-            }
-            agent {
-                node {
-                    // spin up a node.js slave pod to run this build on
-                    // when running Jenkinsfile from SCM this implicitly does a checkout scm
-                    label 'nodejs'
-                }
-            }
-            parameters {
-                string(name: 'Greeting', defaultValue: 'Hello', description: 'Hi Mike!')
-            }
             stages {
                 stage('initialise') {
                     steps {
@@ -102,57 +102,57 @@ pipeline {
                     }
                 }
                 */
+            }
+            openshift.withCredentials('my-privileged-credential') {
+                stage('promote to test') {
+                    input "Ready to update Test Project?"
 
-                openshift.withCredentials('my-privileged-credential') {
-                    stage('promote to test') {
-                        input "Ready to update Test Project?"
-
-                        steps {
-                            timeout(10) {
-                                // export as a template or map of exportable objects
-                                // change image to reference :test image
-                                // add in configmaps / secrets support
-                                def project = openshift.selector("project", "node-hello-test")
-                                if (project.count() != 1) {
-                                    openshift.newProject('node-hello-test')
+                    steps {
+                        timeout(10) {
+                            // export as a template or map of exportable objects
+                            // change image to reference :test image
+                            // add in configmaps / secrets support
+                            def project = openshift.selector("project", "node-hello-test")
+                            if (project.count() != 1) {
+                                openshift.newProject('node-hello-test')
+                            }
+                            openshift.withProject('node-hello-test') {
+                                def maps = openshift.selector(['dc', 'svc', 'route'], [app: "${name}-master"])
+                                def objs = maps.objects(exportable: true)
+                                // Modify the models as you see fit.
+                                def timestamp = "${System.currentTimeMillis()}"
+                                for (obj in objs) {
+                                    obj.metadata.labels["promoted-on"] = timestamp
                                 }
-                                openshift.withProject('node-hello-test') {
-                                    def maps = openshift.selector(['dc', 'svc', 'route'], [app: "${name}-master"])
-                                    def objs = maps.objects(exportable: true)
-                                    // Modify the models as you see fit.
-                                    def timestamp = "${System.currentTimeMillis()}"
-                                    for (obj in objs) {
-                                        obj.metadata.labels["promoted-on"] = timestamp
-                                    }
-                                    maps.delete('--ignore-not-present')
-                                    openshift.create(objs)
-                                    // Let's wait until at least one pod is Running
-                                    maps.related('pods').untilEach {
-                                        return it.object().status.phase == 'Running'
-                                    }
+                                maps.delete('--ignore-not-present')
+                                openshift.create(objs)
+                                // Let's wait until at least one pod is Running
+                                maps.related('pods').untilEach {
+                                    return it.object().status.phase == 'Running'
                                 }
                             }
                         }
                     }
                 }
-
-                /*
-                stage('promote to prod in a new cluster') {
-                    // with another cluster - repeat test steps using :prod
-                    openshift.withCluster( 'prodcluster' ) {
-
-                    }
-                }*/
-
-                /* stage('tag') {
-                    steps {
-                        // if everything else succeeded, tag the ${templateName}:latest image as ${templateName}-staging:latest
-                        // a pipeline build config for the staging environment can watch for the ${templateName}-staging:latest
-                        // image to change and then deploy it to the staging environment
-                        openshift.tag("${templateName}:latest", "${templateName}-staging:latest")
-                    }
-                }*/
             }
+
+            /*
+            stage('promote to prod in a new cluster') {
+                // with another cluster - repeat test steps using :prod
+                openshift.withCluster( 'prodcluster' ) {
+
+                }
+            }*/
+
+            /* stage('tag') {
+                steps {
+                    // if everything else succeeded, tag the ${templateName}:latest image as ${templateName}-staging:latest
+                    // a pipeline build config for the staging environment can watch for the ${templateName}-staging:latest
+                    // image to change and then deploy it to the staging environment
+                    openshift.tag("${templateName}:latest", "${templateName}-staging:latest")
+                }
+            }*/
         }
     }
 }
+
