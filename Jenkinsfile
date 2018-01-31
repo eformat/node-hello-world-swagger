@@ -103,7 +103,7 @@ openshift.withCluster() {
                 }
                 */
             }
-            openshift.withCredentials('my-privileged-credential') {
+            openshift.doAs('my-privileged-credential') {
                 stage('promote to test') {
                     input "Ready to update Test Project?"
 
