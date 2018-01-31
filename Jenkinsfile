@@ -66,10 +66,10 @@ openshift.withCluster() {
                                 echo "new-app created ${created.count()} objects named: ${created.names()}"
                                 def bc = created.narrow('bc')
                                 bc.logs('-f')
-                            }
-                            build = bc.related('builds')
-                            build.untilEach(1) { // We want a minimum of 1 build
-                                return it.object().status.phase == "Complete"
+                                build = bc.related('builds')
+                                build.untilEach(1) { // We want a minimum of 1 build
+                                    return it.object().status.phase == "Complete"
+                                }
                             }
                         }
                     }
