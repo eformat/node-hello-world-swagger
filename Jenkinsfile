@@ -53,7 +53,7 @@ openshift.withCluster() {
                         branch 'master'
                     }
                     steps {
-                        def bc_args = [source, "--name ${name}-master"]
+                        def bc_args = [source, "--name ${name}-master", "--strategy=source"]
                         def bc = openshift.newApp(bc_args).narrow('bc')
                         def builds = bc.related('builds')
                         builds.untilEach(1) { // We want a minimum of 1 build
