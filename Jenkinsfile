@@ -105,28 +105,30 @@ openshift.withCluster() {
 
                 stage('promote to test') {
                     input "Ready to update Test Project?"
-                    steps {
-                        timeout(10) {
-                            // export as a template or map of exportable objects
-                            // change image to reference :test image
-                            // add in configmaps / secrets support
-                            //def project = openshift.selector("project", "node-hello-test")
-                            //if (project.count() != 1) {
-                            openshift.newProject('node-hello-test')
-                            //}
-                            openshift.withProject('node-hello-test') {
-                                def maps = openshift.selector( ['dc', 'svc', 'route'], [ app: "${name}-master" ] )
-                                def objs = maps.objects( exportable:true )
-                                // Modify the models as you see fit.
-                                def timestamp = "${System.currentTimeMillis()}"
-                                for ( obj in objs ) {
-                                    obj.metadata.labels[ "promoted-on" ] = timestamp
+                    openshift.withCredentials('my-privileged-credential') {
+                        steps {
+                            timeout(10) {
+                                // export as a template or map of exportable objects
+                                // change image to reference :test image
+                                // add in configmaps / secrets support
+                                def project = openshift.selector("project", "node-hello-test")
+                                if (project.count() != 1) {
+                                    openshift.newProject('node-hello-test')
                                 }
-                                maps.delete( '--ignore-not-present' )
-                                openshift.create( objs )
-                                // Let's wait until at least one pod is Running
-                                maps.related( 'pods' ).untilEach {
-                                    return it.object().status.phase == 'Running'
+                                openshift.withProject('node-hello-test') {
+                                    def maps = openshift.selector(['dc', 'svc', 'route'], [app: "${name}-master"])
+                                    def objs = maps.objects(exportable: true)
+                                    // Modify the models as you see fit.
+                                    def timestamp = "${System.currentTimeMillis()}"
+                                    for (obj in objs) {
+                                        obj.metadata.labels["promoted-on"] = timestamp
+                                    }
+                                    maps.delete('--ignore-not-present')
+                                    openshift.create(objs)
+                                    // Let's wait until at least one pod is Running
+                                    maps.related('pods').untilEach {
+                                        return it.object().status.phase == 'Running'
+                                    }
                                 }
                             }
                         }
