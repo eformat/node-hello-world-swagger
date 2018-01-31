@@ -22,6 +22,9 @@ openshift.withCluster() {
                     label 'nodejs'
                 }
             }
+            parameters {
+                string(name: 'Greeting', defaultValue: 'Hello', description: 'Hi Mike!')
+            }
             stages {
                 stage('initialise') {
                     steps {
