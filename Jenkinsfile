@@ -93,7 +93,7 @@ openshift.withCluster() {
                             if (route.count() != 1) {
                                 def svc = openshift.selector("svc", "${name}-master")
                                 def result = svc.expose()
-                                return (${result.status} == 0)
+                                return ("${result.status}" == 0)
                             }
                         }
                     }
