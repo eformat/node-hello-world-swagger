@@ -105,7 +105,7 @@ openshift.withCluster() {
 
                 stage('promote to test') {
                     input "Ready to update Test Project?"
-                    openshift.withCredentials('my-privileged-credential') {
+                    openshift.doAs('my-privileged-credential') {
                         steps {
                             timeout(10) {
                                 // export as a template or map of exportable objects
