@@ -59,6 +59,9 @@ openshift.withCluster() {
                                 // existing bc
                                 def buildSelector = build.startBuild()
                                 buildSelector.logs("-f")
+                                build.untilEach(1) { // We want a minimum of 1 build
+                                    return it.object().status.phase == "Complete"
+                                }
                             } else {
                                 // create new build
                                 def bc_args = [origin_url, "--name ${name}-master", "--strategy=source"]
