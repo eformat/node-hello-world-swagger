@@ -53,7 +53,8 @@ openshift.withCluster() {
                         branch 'master'
                     }
                     steps {
-                        def bc = openshift.newApp(source).narrow('bc')
+                        def bc_args = [source, "--name ${name}-master"]
+                        def bc = openshift.newApp(bc_args).narrow('bc')
                         def builds = bc.related('builds')
                         builds.untilEach(1) { // We want a minimum of 1 build
                             return it.object().status.phase == "Complete"
