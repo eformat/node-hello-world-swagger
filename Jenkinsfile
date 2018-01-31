@@ -55,7 +55,7 @@ openshift.withCluster() {
                     steps {
                         timeout(10) {
                             def build = openshift.selector("bc", "${name}-master")
-                            if (build) {
+                            if (build.count() > 0) {
                                 // existing bc
                                 def buildSelector = build.startBuild()
                                 buildSelector.logs('-f')
