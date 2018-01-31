@@ -62,9 +62,11 @@ openshift.withCluster() {
                             } else {
                                 // create new build
                                 def bc_args = [origin_url, "--name ${name}-master", "--strategy=source"]
-                                def bc = openshift.newApp(bc_args).narrow('bc')
-                                bc.logs("-f")
-                                //build = bc.related('builds')
+                                def created = openshift.newApp(bc_args)
+                                echo "new-app created ${created.count()} objects named: ${created.names()}"
+                                def bc = created.narrow('bc')
+                                bc.logs('-f')
+                                //build = created.related('builds')
                                 //build.untilEach(1) { // We want a minimum of 1 build
                                 //    return it.object().status.phase == "Complete"
                                 //}
