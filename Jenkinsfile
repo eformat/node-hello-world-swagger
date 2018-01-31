@@ -4,45 +4,46 @@ echo "Build Number is: ${env.BUILD_NUMBER}"
 echo "Job Name is: ${env.JOB_NAME}"
 
 openshift.withCluster() {
-    openshift.withProject() {
-        echo "Using project: ${openshift.project()}"
-        pipeline {
-            environment {
-                //CREDS = credentials('somecreds')
-                def commit_id, source, origin_url, name
-            }
-            options {
-                // set a timeout of 20 minutes for this pipeline
-                timeout(time: 20, unit: 'MINUTES')
-            }
-            agent {
-                node {
-                    // spin up a node.js slave pod to run this build on
-                    // when running Jenkinsfile from SCM this implicitly does a checkout scm
-                    label 'nodejs'
+    openshift.withCredentials('my-privileged-credential') {
+        openshift.withProject() {
+            echo "Using project: ${openshift.project()}"
+            pipeline {
+                environment {
+                    //CREDS = credentials('somecreds')
+                    def commit_id, source, origin_url, name
                 }
-            }
-            parameters {
-                string(name: 'Greeting', defaultValue: 'Hello', description: 'Hi Mike!')
-            }
-            stages {
-                stage('initialise') {
-                    steps {
-                        sh 'printenv'
-                        dir("${WORKSPACE}") {
-                            commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
-                            echo "Git Commit is: ${commit_id}"
-                            def cmd0 = $/name=$(git config --local remote.origin.url); name=$${name##*/}; echo $${name%%.git}/$
-                            name = sh(returnStdout: true, script: cmd0).trim()
-                            echo "Name is: ${name}"
-                        }
-                        origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
-                        source = "${origin_url}#${commit_id}"
-                        echo "Source URL is: ${source}"
+                options {
+                    // set a timeout of 20 minutes for this pipeline
+                    timeout(time: 20, unit: 'MINUTES')
+                }
+                agent {
+                    node {
+                        // spin up a node.js slave pod to run this build on
+                        // when running Jenkinsfile from SCM this implicitly does a checkout scm
+                        label 'nodejs'
                     }
                 }
+                parameters {
+                    string(name: 'Greeting', defaultValue: 'Hello', description: 'Hi Mike!')
+                }
+                stages {
+                    stage('initialise') {
+                        steps {
+                            sh 'printenv'
+                            dir("${WORKSPACE}") {
+                                commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
+                                echo "Git Commit is: ${commit_id}"
+                                def cmd0 = $/name=$(git config --local remote.origin.url); name=$${name##*/}; echo $${name%%.git}/$
+                                name = sh(returnStdout: true, script: cmd0).trim()
+                                echo "Name is: ${name}"
+                            }
+                            origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
+                            source = "${origin_url}#${commit_id}"
+                            echo "Source URL is: ${source}"
+                        }
+                    }
 
-                /*
+                    /*
                 stage('ci build') {
                     when {
                         branch 'PR-*'
@@ -103,7 +104,6 @@ openshift.withCluster() {
                 }
                 */
 
-                openshift.withCredentials('my-privileged-credential') {
                     stage('promote to test') {
                         input "Ready to update Test Project?"
 
@@ -134,9 +134,8 @@ openshift.withCluster() {
                             }
                         }
                     }
-                }
 
-                /*
+                    /*
                 stage('promote to prod in a new cluster') {
                     // with another cluster - repeat test steps using :prod
                     openshift.withCluster( 'prodcluster' ) {
@@ -144,7 +143,7 @@ openshift.withCluster() {
                     }
                 }*/
 
-                /* stage('tag') {
+                    /* stage('tag') {
                     steps {
                         // if everything else succeeded, tag the ${templateName}:latest image as ${templateName}-staging:latest
                         // a pipeline build config for the staging environment can watch for the ${templateName}-staging:latest
@@ -152,6 +151,7 @@ openshift.withCluster() {
                         openshift.tag("${templateName}:latest", "${templateName}-staging:latest")
                     }
                 }*/
+                }
             }
         }
     }
