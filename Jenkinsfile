@@ -91,7 +91,7 @@ openshift.withCluster() {
                         timeout(1) {
                             def svc = openshift.selector("svc", "${name}-master")
                             def result = svc.expose()
-                            result.describe()
+                            echo "create route status: ${result.status}"
                         }
                     }
                 }
