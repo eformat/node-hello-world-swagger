@@ -64,10 +64,10 @@ openshift.withCluster() {
                                 def bc_args = [origin_url, "--name ${name}-master", "--strategy=source"]
                                 def bc = openshift.newApp(bc_args).narrow('bc')
                                 bc.logs("-f")
-                                build = bc.related('builds')
-                                build.untilEach(1) { // We want a minimum of 1 build
-                                    return it.object().status.phase == "Complete"
-                                }
+                                //build = bc.related('builds')
+                                //build.untilEach(1) { // We want a minimum of 1 build
+                                //    return it.object().status.phase == "Complete"
+                                //}
                             }
                         }
                     }
