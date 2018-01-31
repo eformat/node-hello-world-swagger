@@ -54,12 +54,13 @@ openshift.withCluster() {
                     }
                     steps {
                         timeout(10) {
-                            def build = openshift.selector("bc", "${name}-master").related('builds')
+                            def build = openshift.selector("bc", "${name}-master")
                             if (build) {
                                 // existing bc
                                 def buildSelector = build.startBuild()
                                 buildSelector.logs('-f')
                             } else {
+                                // create new build
                                 def bc_args = [source, "--name ${name}-master", "--strategy=source"]
                                 def bc = openshift.newApp(bc_args).narrow('bc')
                                 build = bc.related('builds')
