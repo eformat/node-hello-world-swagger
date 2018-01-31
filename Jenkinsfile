@@ -53,11 +53,21 @@ openshift.withCluster() {
                         branch 'master'
                     }
                     steps {
-                        def bc_args = [source, "--name ${name}-master", "--strategy=source"]
-                        def bc = openshift.newApp(bc_args).narrow('bc')
-                        def builds = bc.related('builds')
-                        builds.untilEach(1) { // We want a minimum of 1 build
-                            return it.object().status.phase == "Complete"
+                        timeout(10) {
+                            def build = openshift.selector("bc", $ { name } - master).related('builds')
+                            if (build) {
+                                // existing bc
+                                def buildSelector = build.startBuild()
+                                buildSelector.logs('-f')
+                            } else {
+                                def bc_args = [source, "--name ${name}-master", "--strategy=source"]
+                                def bc = openshift.newApp(bc_args).narrow('bc')
+                                build = bc.related('builds')
+                                build.logs('-f')
+                                build.untilEach(1) { // We want a minimum of 1 build
+                                    return it.object().status.phase == "Complete"
+                                }
+                            }
                         }
                     }
                 }
