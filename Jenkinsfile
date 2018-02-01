@@ -128,7 +128,7 @@ pipeline {
                         openshift.withCredentials() {
                             openshift.withProject("${DEV_PROJECT}") {
                                 openshift.selector("dc", "${APP_NAME}").rollout()
-                                openshift.selector("dc", "${APP_NAME}").scale("${DEV_REPLICA_COUNT}")
+                                openshift.selector("dc", "${APP_NAME}").scale("--replicas=${DEV_REPLICA_COUNT}")
                                 openshift.selector("dc", "${APP_NAME}").related('pods').untilEach("${DEV_REPLICA_COUNT}".toInteger()) {
                                     return (it.object().status.phase == "Running")
                                 }
@@ -248,7 +248,7 @@ pipeline {
                     openshift.withCluster() {
                         openshift.withCredentials() {
                             openshift.withProject("${TEST_PROJECT}") {
-                                openshift.selector("dc", "${APP_NAME}").scale("${TEST_REPLICA_COUNT}")
+                                openshift.selector("dc", "${APP_NAME}").scale("--replicas=${TEST_REPLICA_COUNT}")
                                 openshift.selector("dc", "${APP_NAME}").related('pods').untilEach("${TEST_REPLICA_COUNT}".toInteger()) {
                                     return (it.object().status.phase == "Running")
                                 }
