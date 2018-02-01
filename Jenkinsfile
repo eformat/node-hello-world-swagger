@@ -1,74 +1,115 @@
 #!groovy
+/*
+  Intended to run from a separate project where you have deployed Jenkins.
+  To allow the jenkins service account to create projects:
 
-echo "Build Number is: ${env.BUILD_NUMBER}"
-echo "Job Name is: ${env.JOB_NAME}"
+  oc adm policy add-cluster-role-to-user self-provisioner system:serviceaccount:$(oc project -q):jenkins
+  oc adm policy add-cluster-role-to-user view system:serviceaccount:$(oc project -q):jenkins
+ */
+pipeline {
+    // environment {}
+    options {
+        // set a timeout of 20 minutes for this pipeline
+        timeout(time: 20, unit: 'MINUTES')
+        // when running Jenkinsfile from SCM using jenkinsfilepath the node implicitly does a checkout
+        skipDefaultCheckout()
+    }
+    agent none
+    parameters {
+        string(name: 'APP_NAME', defaultValue: 'node-hello', description: "Application Name - all resources use this name as a label")
+        string(name: 'GIT_URL', defaultValue: 'https://github.com/eformat/node-hello-world-swagger.git', description: "Project Git URL)")
+        string(name: 'GIT_BRANCH', defaultValue: 'master', description: "Git Branch (from Multibranch plugin if being used)")
+        string(name: 'STI_IMAGE', defaultValue: 'openshift/nodejs:latest', description: "S2I Image to use for build")
+        string(name: 'DEV_PROJECT', defaultValue: 'node-hello-dev', description: "Name of the Development namespace")
+        string(name: 'DEV_REPLICA_COUNT', defaultValue: '1', description: "Number of development pods we desire")
+        string(name: 'DEV_TAG', defaultValue: 'latest', description: "Development tag")
+        string(name: 'TEST_PROJECT', defaultValue: 'node-hello-test', description: "Name of the Test namespace")
+        string(name: 'TEST_REPLICA_COUNT', defaultValue: '1', description: "Number of test pods we desire")
+        string(name: 'TEST_TAG', defaultValue: 'test', description: "Test tag")
+    }
+    stages {
+        stage('initialise') {
+            agent any
+            steps {
+                echo "Build Number is: ${env.BUILD_NUMBER}"
+                echo "Job Name is: ${env.JOB_NAME}"
+                sh "oc version"
+                sh 'printenv'
+            }
+        }
 
-openshift.withCluster() {
-    openshift.withProject() {
-        echo "Using project: ${openshift.project()}"
-        pipeline {
-            environment {
-                //CREDS = credentials('somecreds')
-                def commit_id, source, origin_url, name
-            }
-            options {
-                // set a timeout of 20 minutes for this pipeline
-                timeout(time: 20, unit: 'MINUTES')
-            }
-            agent {
-                node {
-                    // spin up a node.js slave pod to run this build on
-                    // when running Jenkinsfile from SCM this implicitly does a checkout scm
-                    label 'nodejs'
-                }
-            }
-            parameters {
-                string(name: 'Greeting', defaultValue: 'Hello', description: 'Hi Mike!')
-            }
-            stages {
-                stage('initialise') {
-                    steps {
-                        sh 'printenv'
-                        dir("${WORKSPACE}") {
-                            commit_id = sh(returnStdout: true, script: 'git rev-parse --short HEAD').trim()
-                            echo "Git Commit is: ${commit_id}"
-                            def cmd0 = $/name=$(git config --local remote.origin.url); name=$${name##*/}; echo $${name%%.git}/$
-                            name = sh(returnStdout: true, script: cmd0).trim()
-                            echo "Name is: ${name}"
+        stage('create dev project') {
+            agent any
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject() {
+                            return !openshift.selector("project", "${DEV_PROJECT}").exists();
                         }
-                        origin_url = sh(returnStdout: true, script: 'git config --get remote.origin.url').trim()
-                        source = "${origin_url}#${commit_id}"
-                        echo "Source URL is: ${source}"
                     }
                 }
-
-                stage('ci build') {
-                    when {
-                        branch 'PR-*'
-                    }
-                    steps {
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withCredentials() {
+                            openshift.withProject() {
+                                openshift.newProject("${DEV_PROJECT}")
+                            }
+                        }
                     }
                 }
+            }
+        }
 
-                stage('build') {
-                    when {
-                        branch 'master'
+        stage('build dev') {
+            agent any
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject("${DEV_PROJECT}") {
+                            return openshift.selector("bc", "${APP_NAME}").exists();
+                        }
                     }
-                    steps {
-                        timeout(10) {
-                            def build = openshift.selector("bc", "${name}-master")
-                            if (build.count() == 1) {
-                                // existing bc
-                                def buildSelector = build.startBuild()
-                                buildSelector.logs("-f")
-                            } else {
-                                // create new build
-                                def bc_args = [origin_url, "--name ${name}-master", "--strategy=source"]
+
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withCredentials() {
+                            openshift.withProject("${DEV_PROJECT}") {
+                                openshift.selector("bc", "${APP_NAME}").startBuild("--wait").logs("-f")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('new build dev') {
+            agent any
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject("${DEV_PROJECT}") {
+                            return !openshift.selector("bc", "${APP_NAME}").exists();
+                        }
+                    }
+
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withCredentials() {
+                            openshift.withProject("${DEV_PROJECT}") {
+                                def bc_args = ["${GIT_URL}", "--name ${APP_NAME}", "--strategy=source", "--image-stream=${STI_IMAGE}"]
                                 def created = openshift.newApp(bc_args)
                                 echo "new-app created ${created.count()} objects named: ${created.names()}"
                                 def bc = created.narrow('bc')
                                 bc.logs('-f')
-                                build = bc.related('builds')
+                                def build = bc.related('builds')
                                 build.untilEach(1) { // We want a minimum of 1 build
                                     return it.object().status.phase == "Complete"
                                 }
@@ -76,82 +117,171 @@ openshift.withCluster() {
                         }
                     }
                 }
+            }
+        }
 
-                stage('deploy') {
-                    steps {
-                        timeout(5) {
-                            def rm = openshift.selector("dc", "${name}-master").rollout()
-                            openshift.selector("dc", "${name}-master").related('pods').untilEach(1) {
-                                return (it.object().status.phase == "Running")
-                            }
-                        }
-                    }
-                }
-
-                stage('create route') {
-                    steps {
-                        timeout(1) {
-                            def route = openshift.selector("route", "${name}-master")
-                            if (route.count() != 1) {
-                                def svc = openshift.selector("svc", "${name}-master")
-                                def result = svc.expose()
-                                return ("${result.status}" == 0)
-                            }
-                        }
-                    }
-                }
-
-                /*
-                openshift.withCredentials('my-privileged-credential') {
-                    stage('promote to test') {
-                        input "Ready to update Test Project?"
-
-                        steps {
-                            timeout(10) {
-                                // export as a template or map of exportable objects
-                                // change image to reference :test image
-                                // add in configmaps / secrets support
-                                def project = openshift.selector("project", "node-hello-test")
-                                if (project.count() != 1) {
-                                    openshift.newProject('node-hello-test')
-                                }
-                                openshift.withProject('node-hello-test') {
-                                    def maps = openshift.selector(['dc', 'svc', 'route'], [app: "${name}-master"])
-                                    def objs = maps.objects(exportable: true)
-                                    // Modify the models as you see fit.
-                                    def timestamp = "${System.currentTimeMillis()}"
-                                    for (obj in objs) {
-                                        obj.metadata.labels["promoted-on"] = timestamp
-                                    }
-                                    maps.delete('--ignore-not-present')
-                                    openshift.create(objs)
-                                    // Let's wait until at least one pod is Running
-                                    maps.related('pods').untilEach {
-                                        return it.object().status.phase == 'Running'
-                                    }
+        stage('deploy dev') {
+            agent any
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withCredentials() {
+                            openshift.withProject("${DEV_PROJECT}") {
+                                openshift.selector("dc", "${APP_NAME}").rollout()
+                                openshift.selector("dc", "${APP_NAME}").scale("${DEV_REPLICA_COUNT}")
+                                openshift.selector("dc", "${APP_NAME}").related('pods').untilEach("${DEV_REPLICA_COUNT}".toInteger()) {
+                                    return (it.object().status.phase == "Running")
                                 }
                             }
                         }
                     }
-                }*/
+                }
+            }
+        }
 
-                /*
-                stage('promote to prod in a new cluster') {
-                    // with another cluster - repeat test steps using :prod
-                    openshift.withCluster( 'prodcluster' ) {
-
+        stage('create dev route') {
+            agent any
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject("${DEV_PROJECT}") {
+                            return !openshift.selector("route", "${APP_NAME}").exists();
+                        }
                     }
-                }*/
-
-                /* stage('tag') {
-                    steps {
-                        // if everything else succeeded, tag the ${templateName}:latest image as ${templateName}-staging:latest
-                        // a pipeline build config for the staging environment can watch for the ${templateName}-staging:latest
-                        // image to change and then deploy it to the staging environment
-                        openshift.tag("${templateName}:latest", "${templateName}-staging:latest")
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withCredentials() {
+                            openshift.withProject("${DEV_PROJECT}") {
+                                openshift.selector("svc", "${APP_NAME}").expose()
+                            }
+                        }
                     }
-                }*/
+                }
+            }
+        }
+
+        stage('test deployment') {
+            agent any
+            steps {
+                timeout(time: 5, unit: 'MINUTES') {
+                    input 'Do you approve deployment to Test environment ?'
+                }
+            }
+        }
+
+        stage('create test project') {
+            agent any
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withCredentials() {
+                            openshift.withProject() {
+                                return !openshift.selector("project", "${TEST_PROJECT}").exists();
+                            }
+                        }
+                    }
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withCredentials() {
+                            openshift.withProject() {
+                                openshift.newProject("${TEST_PROJECT}")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('promote to test') {
+            agent any
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withCredentials() {
+                            openshift.withProject("${DEV_PROJECT}") {
+                                openshift.tag("${DEV_PROJECT}/${APP_NAME}:${DEV_TAG}", "${TEST_PROJECT}/${APP_NAME}:${TEST_TAG}")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('new deploy test') {
+            agent any
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withCredentials() {
+                            openshift.withProject("${TEST_PROJECT}") {
+                                return !openshift.selector("dc", "${APP_NAME}").exists();
+                            }
+                        }
+                    }
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withCredentials() {
+                            openshift.withProject("${TEST_PROJECT}") {
+                                def bc_args = ["${TEST_PROJECT}/${APP_NAME}:${TEST_TAG}", "--name ${APP_NAME}"]
+                                def created = openshift.newApp(bc_args)
+                                echo "new-app created ${created.count()} objects named: ${created.names()}"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('scale replicas test') {
+            agent any
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withCredentials() {
+                            openshift.withProject("${TEST_PROJECT}") {
+                                openshift.selector("dc", "${APP_NAME}").scale("${TEST_REPLICA_COUNT}")
+                                openshift.selector("dc", "${APP_NAME}").related('pods').untilEach("${TEST_REPLICA_COUNT}".toInteger()) {
+                                    return (it.object().status.phase == "Running")
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('create test route') {
+            agent any
+            when {
+                expression {
+                    openshift.withCluster() {
+                        openshift.withProject("${TEST_PROJECT}") {
+                            return !openshift.selector("route", "${APP_NAME}").exists();
+                        }
+                    }
+                }
+            }
+            steps {
+                script {
+                    openshift.withCluster() {
+                        openshift.withCredentials() {
+                            openshift.withProject("${TEST_PROJECT}") {
+                                openshift.selector("svc", "${APP_NAME}").expose()
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 }
+
