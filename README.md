@@ -14,9 +14,16 @@
 
 ## Run in OSEv3
 
-    oc project helloworld-dev
-    oc new-app https://github.com/eformat/node-hello-world-swagger.git --name=helloworld --strategy=sti
-    oc expose service helloworld --name=helloworld --hostname=helloworld-dev.apps.example.com
+    oc new-project helloworld
+    oc new-app https://github.com/eformat/node-hello-world-swagger.git --name=helloworld --strategy=source
+    oc expose service helloworld --name=helloworld --hostname=helloworld.apps.example.com
+
+
+# NPM Mirror
+
+```
+oc new-app https://github.com/eformat/node-hello-world-swagger.git --name=helloworld --strategy=source --build-env NPM_MIRROR=http://nexus.nexus.svc.cluster.local:8081/repository/npm-group
+```
 
 ## Generate JAX-RS stubs (or any other code stubs - see codegen link)
 

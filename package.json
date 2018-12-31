@@ -20,8 +20,8 @@
     "url": "git+https://github.com/eformat/node-hello-world-swagger"
   },
   "dependencies": {
-    "swagger-server": "1.0.0-alpha.16",
-    "swagger-parser": "3.3.0"
+    "swagger-express-middleware": "latest",
+    "express": "latest"
   },
   "devDependencies": {}
 }

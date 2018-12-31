@@ -1,4 +1,7 @@
 'use strict';
+const express = require('express');
+const createMiddleware = require('swagger-express-middleware');
+
 /**************************************************************************************************
  * This sample demonstrates the most simplistic usage of Swagger Server.
  * It simply creates a new instance of Swagger Server and starts it.
@@ -6,28 +9,23 @@
  * Validate and Parse the API yaml/json before starting
  **************************************************************************************************/
 
-// Set the DEBUG environment variable to enable debug output
-process.env.DEBUG = 'swagger:*';
-
-// Create a Swagger Server app from the PetStore.yaml file
-var swaggerServer = require('swagger-server');
-var SwaggerParser = require('swagger-parser');
-
-var myAPI = 'HelloWorld.yaml';
 var port = 8080;
+let app = express();
 
-var app = swaggerServer(myAPI);
+createMiddleware('HelloWorld.yaml', app, function (err, middleware) {
+  // Add all the Swagger Express Middleware, or just the ones you need.
+  // NOTE: Some of these accept optional options (omitted here for brevity)
+  app.use(
+    middleware.metadata(),
+    middleware.CORS(),
+    middleware.files(),
+    middleware.parseRequest(),
+    middleware.validateRequest(),
+    middleware.mock()
+  );
 
-// Validate it first
-SwaggerParser.validate(myAPI)
-    .then(function(api) {
-      console.log("API name: %s, API Version: %s, BuildVersion: %s", api.info.title, api.info.version, process.env.OPENSHIFT_BUILD_REFERENCE);
-      // Start listening on port 8000
-      app.listen(port, function() {
-          console.log('HelloWorld is now running at http://localhost:' + port);
-      });
-    })
-    .catch(function(err) {
-      console.error(err);
-    });
+  app.listen(port, function () {
+    console.log('HelloWorld is now running at http://localhost:' + port);
+  });
 
+});
